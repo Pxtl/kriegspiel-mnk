@@ -3,4 +3,7 @@
     <Project Path="src/KriegspielTicTacToe.Model/KriegspielTicTacToe.Model.csproj" />
     <Project Path="src/KriegspielTicTacToe/KriegspielTicTacToe.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/KriegspielTicTacToe.Model.Tests/KriegspielTicTacToe.Model.Tests.csproj" />
+  </Folder>
 </Solution>
