@@ -4,6 +4,7 @@
 *.suo
 *.user
 *.sln.docstates
+*.lscache
 
 # Build results
 [Dd]ebug/
@@ -15,6 +16,9 @@ x64/
 # MSTest test Results
 [Tt]est[Rr]esult*/
 [Bb]uild[Ll]og.*
+
+# coredump files
+core.*
 
 
 # publish

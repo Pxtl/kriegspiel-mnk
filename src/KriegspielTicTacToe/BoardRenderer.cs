@@ -31,8 +31,8 @@ public static class BoardRenderer {
             nextDrawnBoardIndex = DrawBorderRow(state, nextDrawnBoardIndex, "└", "┴", "┘", "───", showBoardCode: false);
             Console.WriteLine();
         }
-        if(state.ResignedPlayersSet.Count > 0) {
-            foreach(var resignedPlayer in state.ResignedPlayersSet) {
+        if(state.PlayManager.ResignedPlayersSet.Count > 0) {
+            foreach(var resignedPlayer in state.PlayManager.ResignedPlayersSet) {
                 Console.Out.WriteLine($" - player '{resignedPlayer}' is resigned.");   
             }
         }
@@ -139,7 +139,7 @@ public static class BoardRenderer {
         if (
             string.IsNullOrWhiteSpace(foundSpace) 
             && !board.IsDone 
-            && player == state.CurrentTurnPlayer
+            && state.PlayManager.CanTakeTurn(player)
             && activeBoardIndex == boardIndex
         ) {
             return board.GetSpaceIndexCode(col, row)

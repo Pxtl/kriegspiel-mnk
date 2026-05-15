@@ -6,6 +6,7 @@ namespace KriegspielTicTacToe.Model;
 public record Space {
     /// <summary>
     /// The current state of the space - NULL means available.
+    /// '█' means it's an impasse (two players contested this space in same round).
     /// </summary>
     public char? MarkChar {get;set;}
     private HashSet<char> _knownToPlayersSet {get;set;} = new HashSet<char>();
@@ -25,8 +26,9 @@ public record Space {
     }
 
     /// <summary>
-    /// Get the display value of this space for the given player.  Show always
-    /// if the player is null.
+    /// Get the display value of this space for the given player.
+    /// Show always if the player is null.
+    /// Impasse marker '█' is visible to all players.
     /// </summary>
     public string ToString(char? player)
         => (!player.HasValue || IsKnownToPlayer(player.Value))

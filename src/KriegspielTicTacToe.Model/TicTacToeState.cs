@@ -14,85 +14,52 @@ public record TicTacToeState {
     /// <summary>
     /// This constructor is only used by the serializer, never use it.
     /// </summary>
-    public TicTacToeState()
-    {
+    public TicTacToeState() { 
         Boards = [];
+        PlayManager = new PlayManager();
     }
- 
+
     /// <summary>
     /// Construct a new gamestate object.  Note that there is no protection at this level against impossible values.
     /// </summary>
-    public TicTacToeState(char[] players, bool isRandomPlayer, IEnumerable<BoardBuilder> boardBuilders) {
-        if(isRandomPlayer) {
-            Random.Shared.Shuffle(players);
+    public TicTacToeState(
+        char[] players,
+        IEnumerable<BoardBuilder> boardBuilders,
+        bool isRandomPlayerOrder,
+        bool isSynchronousMode
+    ) {
+        if(isRandomPlayerOrder) { 
+            Random.Shared.Shuffle(players); 
         }
-        Players = players.ToList();
+        PlayManager = new PlayManager
+        {
+            Players = players.ToList(),
+            IsSynchronousMode = isSynchronousMode
+        };
         Boards = boardBuilders.Select(b => new Board(b)).ToList();
     }
     #endregion
 
     #region main data properties
-    public IReadOnlyList<char> Players {get;init;} = new List<char>();
-
-    private int _currentTurnPlayerIndex = 0;
-    /// <summary>
-    /// index within list of *active* players - does not include resigned players.
-    /// </summary>
-    public int CurrentTurnPlayerIndex {
-        get { return _currentTurnPlayerIndex; }
-        set { 
-            _currentTurnPlayerIndex = value; 
-            RefreshCurrentPlayerTurnIndex();
-        }
-    }
-
-    public HashSet<char> ResignedPlayersSet {get;init;} = new HashSet<char>();
+    public PlayManager PlayManager {get;init;}
     public IReadOnlyList<Board> Boards {get;init;}
-    
+
     #endregion
 
-    #region methods
-    /// <summary>
-    /// Advance to the next player's turn.  Do not call this if the current
-    /// player has resigned.
-    /// </summary>
-    public void NextTurn() {
-        CurrentTurnPlayerIndex += 1;
-    }
-
-    /// <summary>
-    /// It's possible that the current player turn can exceed the number of
-    /// players.  In that event, wrap around.
-    /// </summary>
-    public void RefreshCurrentPlayerTurnIndex()
-        => _currentTurnPlayerIndex = CurrentTurnPlayerIndex % ActivePlayers.Count();
-    
-    /// <summary>
-    /// Test if the given player has resigned.
-    /// </summary>
-    public bool IsResignedPlayer(char player) 
-        => ResignedPlayersSet.Contains(player);
-
-    /// <summary>
-    /// Mark the given player as resigned.
-    /// </summary>
-    public void ResignPlayer(char player) {
-        ResignedPlayersSet.Add(player);
-        RefreshCurrentPlayerTurnIndex();
-    }
-    
+    #region methods   
     public Board GetBoardByCode(int boardCode)
         => Boards[boardCode-1];
 
     public OneOf<NotFound, BoardIsDone, Result<int>> SelectBoard(int boardCode)
         => (boardCode <= 0 || boardCode > Boards.Count)
             ? new NotFound()
-            // doNextTurn = false;
-            // Console.WriteLine ($"That is not a valid board.  Please pick an incomplete board from 1 to {state.Boards.Count}.");
             : GetBoardByCode(boardCode).IsDone
             ? new BoardIsDone()
             : new Result<int>(boardCode - 1);
 
+    /// <summary>
+    /// Play a space by its space code.
+    /// </summary>
     public OneOf<Success, Result<char>, AlreadyPlayed, NotFound> PlaySpace(int boardIndex, int spaceCode) {
         var board = Boards[boardIndex];
         if (board.TryGetCoordinatesFromSpaceIndexCode(spaceCode, out var col, out var row)) {
@@ -107,17 +74,21 @@ public record TicTacToeState {
         }
     }
     
+    /// <summary>
+    /// Play a space by its coordinates.
+    /// </summary>
     public OneOf<Success, Result<char>, AlreadyPlayed> PlaySpace(int boardIndex, int col, int row) {
         var board = Boards[boardIndex];
-        if (board.Spaces[col,row].MarkChar == CurrentTurnPlayer) {
+        var space = board.Spaces[col, row];
+        if (space.MarkChar == PlayManager.CurrentTurnPlayer) {
             return new AlreadyPlayed();
         } else {
-            board.Spaces[col,row].MakeKnownToPlayer(CurrentTurnPlayer);
-            var foundMark = board.Spaces[col,row].MarkChar;
+            space.MakeKnownToPlayer(PlayManager.CurrentTurnPlayer);
+            var foundMark = space.MarkChar;
             if (foundMark.HasValue) {
                 return new Result<char>(foundMark.Value);
             } else {
-                board.Spaces[col,row].MarkChar = CurrentTurnPlayer;
+                space.MarkChar = PlayManager.CurrentTurnPlayer;
                 return new Success();
             }
         }
@@ -125,7 +96,6 @@ public record TicTacToeState {
     #endregion
 
     #region helper properties
-    
     /// <summary>
     /// Returns a list of the active board indices. 0-based.
     /// </summary>
@@ -133,7 +103,7 @@ public record TicTacToeState {
     public IEnumerable<int> ActiveBoardIndices {get {
         for(int i = 0; i < Boards.Count; i+=1) {
             if(!Boards[i].IsDone) {
-                yield return i;
+                yield return i; 
             }
         }
     }}
@@ -150,22 +120,23 @@ public record TicTacToeState {
     }}
 
     /// <summary>
-    /// Get all of the current active players.  Order is consistent.
+    /// Returns true if the game has ended, whether by tie or by winner.
     /// </summary>
     [JsonIgnore()]
-    public IEnumerable<char> ActivePlayers
-        => Players.Except(ResignedPlayersSet);
-        
-    /// <summary>
-    /// Get the mark-char of the current-turn player.
-    /// </summary>
-    [JsonIgnore()]
-    public char CurrentTurnPlayer
-        => ActivePlayers.ElementAt(CurrentTurnPlayerIndex);
+    public bool IsGameOver
+        => Boards.All(b => b.IsDone) || PlayManager.ActivePlayers.Count() == 1;
     
+    /// <summary>
+    /// Provides a short text summary of the current game-state. Particularly useful when the game is over.
+    /// </summary>
     [JsonIgnore()]
-    public ScoreCard ScoreCard 
-        => Boards.Aggregate(new ScoreCard(), (prod, next) => prod + next.ScoreCard);
+    public string GameStateText
+        => IsGameOver 
+        ? (Winner.HasValue 
+            ? $"Player '{Winner.Value}' wins!." 
+            : "Tie game."
+        ) 
+        : PlayManager.GameStateText;
     
     [JsonIgnore()]
     /// <summary>
@@ -174,48 +145,30 @@ public record TicTacToeState {
     /// computers are fast.  TODO: Optimization.
     /// </summary>
     public char? Winner {
-        get 
-        {
+        get {
             if(!IsGameOver) {
                 return null;
             }
-
-            if(ActivePlayers.Count() == 1) {
-                return ActivePlayers.Single();
-            }
             
+            if(PlayManager.ActivePlayers.Count() == 1) {
+                return PlayManager.ActivePlayers.Single();
+            }
             var highestScore = ScoreCard.HighestScore;
-            if(highestScore.HasValue) {
-                return highestScore.Value.Player;
-            }
-            
-            //no winner found.
-            return null;
+
+            return highestScore.HasValue 
+                ? highestScore.Value.Player 
+                : null; // no winner found
         }
     }
     
-    /// <summary>
-    /// Returns true if the game has ended, whether by tie or by winner.
-    /// </summary>
     [JsonIgnore()]
-    public bool IsGameOver
-        => Boards.All(b => b.IsDone)
-        || ActivePlayers.Count() == 1;
-    
-    /// <summary>
-    /// Provides a short text summary of the current game-state. Particularly useful when the game is over.
-    /// </summary>
-    [JsonIgnore()]
-    public string GameStateText
-        => Winner.HasValue
-            ? $"Player '{Winner}' wins!"
-            : IsGameOver 
-            ? "Tie game."
-            : $"Player '{CurrentTurnPlayer}' turn.";
-    
+    public ScoreCard ScoreCard 
+        => Boards.Aggregate(
+            new ScoreCard(),
+            (prod, next) => prod + next.ScoreCard
+            );
     #endregion
 }
-
 
 /// <summary>
 /// Empty result struct for OneOf, used when a player tries to play on a space they already played.

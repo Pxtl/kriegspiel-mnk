@@ -16,17 +16,20 @@ class Program {
             Options.RandomOption,
             Options.SizeOption,
             Options.BoardsNumberOption,
-            Options.JoinAsPlayerOption
+            Options.JoinAsPlayerOption,
+            Options.SynchronousModeOption
         };
 
         rootCommand.SetAction((parseResult) => {
                 var file = parseResult.GetValue(Options.StateFileOption)!;  // has non-null default value.
                 var doForceNewGame = parseResult.GetValue(Options.ForceNewGameOption);
                 var players = parseResult.GetValue(Options.PlayersOption)!; // has non-null default value.
-                var isRandomPlayer = parseResult.GetValue(Options.RandomOption);
                 var size = parseResult.GetValue(Options.SizeOption);
                 var boardsNumber = parseResult.GetValue(Options.BoardsNumberOption);
                 var joinAsPlayer = parseResult.GetValue(Options.JoinAsPlayerOption);
+
+                var isRandomPlayer = parseResult.GetValue(Options.RandomOption);
+                var isSynchronousMode = parseResult.GetValue(Options.SynchronousModeOption);
 
                 var boardBuilders = new Model.BoardBuilder[boardsNumber!.Value];
 
@@ -37,9 +40,10 @@ class Program {
                     file,
                     doForceNewGame,
                     players.Select(p => p.Single()).ToArray(),
-                    isRandomPlayer,
                     boardBuilders,
-                    (joinAsPlayer ?? "").Cast<char?>().SingleOrDefault()
+                    (joinAsPlayer ?? "").Cast<char?>().SingleOrDefault(),
+                    isRandomPlayerOrder: isRandomPlayer,
+                    isSynchronousMode: isSynchronousMode
                 );
             }
         );

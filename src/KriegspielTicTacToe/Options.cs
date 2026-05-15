@@ -74,4 +74,8 @@ internal static class Options {
     public static Option<string> JoinAsPlayerOption = new ("--join", "-j") {
         Description = "Join as given player char mark. Must match a mark in players list. Hotseat mode if not provided."
     };
+
+    public static Option<bool> SynchronousModeOption = new ("--synchronous", "-y") {
+        Description = "Moves do not execute until all players in a round have taken a turn.  If two players move to the same square, that square becomes an impasse marker visible to all."
+    };
 }

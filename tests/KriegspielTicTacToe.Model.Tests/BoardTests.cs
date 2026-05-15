@@ -108,6 +108,7 @@ public class BoardTests {
     #endregion
 
     #region SpaceIndexCodeLength_Calc
+
     [Fact]
     public void SpaceIndexCodeLength_CalculatesCorrectly() {
         var board = new Board(3, 3);
@@ -120,6 +121,52 @@ public class BoardTests {
         var board = new Board(100, 10);
         var spaceCount = board.Spaces.GetLength(0) * board.Spaces.GetLength(1);
         board.SpaceIndexCodeLength.Should().Be( (int)Math.Floor(Math.Log10(spaceCount)) + 1);
+    }
+    #endregion
+
+    #region MakeKnownToPlayer
+
+    [Fact]
+    public void MakeKnownToPlayer_MarksToPlayer_IsKnown() {
+        var board = new Board(3, 3);
+        board.Spaces[0, 0].MarkChar = 'X';
+        board.Spaces[0, 0].MakeKnownToPlayer('X');
+        
+        board.Spaces[0, 0].KnownToPlayersSet.Should().Contain('X');
+    }
+
+    [Fact]
+    public void MakeKnownToPlayer_MarksToAnotherPlayer_IsKnown() {
+        var board = new Board(3, 3);
+        board.Spaces[0, 0].MarkChar = 'X';
+        board.Spaces[0, 0].MakeKnownToPlayer('O');
+        
+        board.Spaces[0, 0].KnownToPlayersSet.Should().Contain('O');
+    }
+    #endregion
+
+    #region ScoreCard
+
+    [Fact]
+    public void ScoreCard_CalculatesWinningBoard_XWins() {
+        var board = new Board(3, 3);
+        
+        board.Spaces[0, 0].MarkChar = 'X';
+        board.Spaces[0, 1].MarkChar = 'X';
+        board.Spaces[0, 2].MarkChar = 'X';
+        
+        board.ScoreCard.HighestScore.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void ScoreCard_CalculatesWinningBoard_OWins() {
+        var board = new Board(3, 3);
+        
+        board.Spaces[0, 0].MarkChar = 'O';
+        board.Spaces[1, 0].MarkChar = 'O';
+        board.Spaces[2, 0].MarkChar = 'O';
+        
+        board.ScoreCard.HighestScore.Should().NotBeNull();
     }
     #endregion
 }
