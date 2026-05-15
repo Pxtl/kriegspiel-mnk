@@ -1,10 +1,7 @@
 namespace KriegspielTicTacToe;
 
 using KriegspielTicTacToe.Model;
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
 /// <summary>
 /// Game logic implementation.

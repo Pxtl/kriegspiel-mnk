@@ -1,6 +1,5 @@
 namespace KriegspielTicTacToe;
 
-using System;
 using System.CommandLine;
 
 /// <summary>

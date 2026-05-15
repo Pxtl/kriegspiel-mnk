@@ -1,6 +1,5 @@
 namespace KriegspielTicTacToe.Model;
 
-using System.Linq;
 using OneOf.Types;
 
 /// <summary>

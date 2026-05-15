@@ -1,8 +1,6 @@
 namespace KriegspielTicTacToe;
 
-using System;
 using System.CommandLine;
-using System.CommandLine.Invocation;
 
 /// <summary>
 /// Application entry point.

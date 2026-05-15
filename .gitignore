@@ -20,6 +20,9 @@ x64/
 # coredump files
 core.*
 
-
 # publish
 # .vscode
+
+# Agent working files
+temp/
+.ralph/

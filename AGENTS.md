@@ -16,4 +16,8 @@ codifying more logic into model.
 # Refactoring
 
 Do not attempt to refactor or otherwise clean-up the code unless specifically
-instructed to do so.
+instructed to do so. Do not remove comments unless they are untrue.
+
+# Scratch space
+
+Create any needed working files such as to-do lists within the `temp` dir, which is gitignored.
