@@ -1,105 +1,115 @@
 namespace KriegspielTicTacToe.Model;
 
-using OneOf;
-using OneOf.Types;
-
-/// <summary>
-/// Base class containing shared play management logic for retirement and turn tracking.
-/// </summary>
-public abstract class PlayManager
+public class PlayManager
 {
     #region members
-    public IReadOnlyList<Player> Players {get;init;} = new List<Player>();
+    public IReadOnlyList<char> Players {get;init;} = new List<char>();
 
-    public int RoundIndex {get;set;}
+    private int _currentTurnPlayerIndex = 0;
+    /// <summary>
+    /// index within list of *active* players - does not include resigned players.
+    /// </summary>
+    public int CurrentTurnPlayerIndex {
+        get { return _currentTurnPlayerIndex; }
+        set {
+            _currentTurnPlayerIndex = value;
+            RefreshCurrentPlayerTurnIndex(); 
+        }
+    }
 
-    public HashSet<Player> ResignedPlayersSet {get; init;} = new HashSet<Player>();
+    private int _roundIndex = 0;
+    public int RoundIndex {
+        get { return _roundIndex; }
+        set { _roundIndex = value; }
+    }
+
+    public bool IsSynchronousMode {get; init;} = false;
     
-    public HashSet<Player> PlayedPlayersSet {get; init;} = new HashSet<Player>();
+    public HashSet<char> ResignedPlayersSet {get;init;} = new HashSet<char>();
     #endregion
 
     #region methods
     /// <summary>
-    /// Advance to the next player's turn.  Must notify if current player is
-    /// resigning because that effects how the turn counter is incremented.
+    /// Advance to the next player's turn.  Do not call this if the current
+    /// player has resigned.
     /// </summary>
-    /// <remarks>
-    /// The logic here is tricky. If the current player resigns, then their slot
-    /// is removed from the index and we skip incrementing.  But that means
-    /// there are 2 "index 0" turns, so we can't use "index 0" as new round in
-    /// that case.
-    /// </remarks>
-    public void EndTurn(Player currentPlayer, out bool hasStateChanged) {
-        MarkPlayerPlayed(currentPlayer);
-        EndedTurn(out hasStateChanged);
-    }
-
-    public void MarkPlayerPlayed(Player player) {
-        if (PlayedPlayersSet.Contains(player)) {
-            throw new InvalidOperationException($"Player {player} has already played");
+    public void NextTurn() {
+        CurrentTurnPlayerIndex += 1;
+        if (CurrentTurnPlayerIndex == 0)
+        {
+            EndRound();
         }
-        PlayedPlayersSet.Add(player);
     }
 
-    public void EndRound(out bool hasStateChanged) {
+    public void EndRound()
+    {
+        CurrentTurnPlayerIndex = 0;
+        if (IsSynchronousMode)
+        {
+            //TODO: Execute synchronous mode turn buffer
+        }
         RoundIndex += 1;
-        PlayedPlayersSet.Clear();
-        EndedRound(out hasStateChanged);
     }
+
+    /// <summary>
+    /// It's possible that the current player turn can exceed the number of
+    /// players.  In that event, wrap around.
+    /// </summary>
+    public void RefreshCurrentPlayerTurnIndex()
+        => _currentTurnPlayerIndex = CurrentTurnPlayerIndex % ActivePlayers.Count();
     
     /// <summary>
     /// Test if the given player has resigned.
     /// </summary>
-    public bool IsResignedPlayer(Player player)
+    public bool IsResignedPlayer(char player)
         => ResignedPlayersSet.Contains(player);
 
     /// <summary>
     /// Mark the given player as resigned. If it is the current player's turn,
     /// do *not* call NextTurn.
     /// </summary>
-    public void ResignPlayer(Player player) {
+    public void ResignPlayer(char player) {
         ResignedPlayersSet.Add(player);
+        RefreshCurrentPlayerTurnIndex();
     }
 
     /// <summary>
     /// True if the given player is able to take a turn.
     /// </summary>
-    public bool CanTakeTurn(Player player)
-        => PlayersAvailableForTurn.Contains(player);
-
-    protected abstract void EndedTurn(out bool hasStateChanged);
-    protected abstract void EndedRound(out bool hasStateChanged);
+    public bool CanTakeTurn(char? player)
+        => player == CurrentTurnPlayer;
     #endregion
 
     #region helper properties
     [JsonIgnore()]
     public int NumberOfActivePlayers
-        => ActivePlayers.Count();
+        => Players
+        .Where(p => !ResignedPlayersSet.Contains(p))
+        .Count();
+
     
     /// <summary>
     /// Get all of the current active players.  Order is consistent.
     /// </summary>
     [JsonIgnore()]
-    public IEnumerable<Player> ActivePlayers
+    public IEnumerable<char> ActivePlayers
         => Players.Except(ResignedPlayersSet);
 
-    [JsonIgnore()]
-    public abstract IEnumerable<Player> PlayersAvailableForTurn {get;}
-
-    [JsonIgnore()]
-    public bool IsRoundOver
-        => PlayersAvailableForTurn.Count() == 0;
-
     /// <summary>
-    /// Abstract GameStateText property - implemented by subclasses.
+    /// Get the mark-char of the current-turn player.
     /// </summary>
     [JsonIgnore()]
-    public abstract string GameStateText {get;}
-    /// <summary>
-    /// The action buffer.  Is set by parent's Init, but Init is
-    /// post-constructor so must be nullable.
-    /// </summary>
+    public char CurrentTurnPlayer 
+        => ActivePlayers.ElementAt(CurrentTurnPlayerIndex);
+    
     [JsonIgnore()]
-    public PlayActionBuffer? PlayActionBuffer { get; internal set; }
+    public bool IsRoundComplete 
+        => (CurrentTurnPlayerIndex == 0) && (RoundIndex > 0);
+
+    [JsonIgnore()]
+    public string GameStateText
+        =>  $"Player '{CurrentTurnPlayer}' turn.";
+
+
     #endregion
 }

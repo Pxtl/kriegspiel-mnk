@@ -1,7 +1,6 @@
 namespace KriegspielTicTacToe;
 
 using System.CommandLine;
-using OneOf;
 
 /// <summary>
 /// Application entry point.
@@ -20,9 +19,9 @@ class Program {
         };
 
         rootCommand.SetAction((parseResult) => {
-                var file = parseResult.GetValue(Options.StateFileOption)!;
+                var file = parseResult.GetValue(Options.StateFileOption)!;  // has non-null default value.
                 var doForceNewGame = parseResult.GetValue(Options.ForceNewGameOption);
-                var players = parseResult.GetValue(Options.PlayersOption)!;
+                var players = parseResult.GetValue(Options.PlayersOption)!; // has non-null default value.
                 var size = parseResult.GetValue(Options.SizeOption);
                 var boardsNumber = parseResult.GetValue(Options.BoardsNumberOption);
                 var joinAsPlayer = parseResult.GetValue(Options.JoinAsPlayerOption);
@@ -31,10 +30,6 @@ class Program {
                 var isSynchronousMode = parseResult.GetValue(Options.SynchronousModeOption);
 
                 var boardBuilders = new Model.BoardBuilder[boardsNumber!.Value];
-                var playerChars = players.Select(p => p[0]).ToArray();
-                var joinAsPlayerUnion = joinAsPlayer == null
-                    ? OneOf<char, LocalHotseatGame>.FromT1(new LocalHotseatGame())
-                    : OneOf<char, LocalHotseatGame>.FromT0(joinAsPlayer[0]);
 
                 for(var i = 0; i < boardsNumber!; i+=1) {
                     boardBuilders[i] = new Model.BoardBuilder(size!.Value, size!.Value);
@@ -42,9 +37,9 @@ class Program {
                 GameLogic.RunGame (
                     file,
                     doForceNewGame,
-                    playerChars,
+                    players.Select(p => p.Single()).ToArray(),
                     boardBuilders,
-                    joinAsPlayerUnion,
+                    (joinAsPlayer ?? "").Cast<char?>().SingleOrDefault(),
                     isRandomPlayerOrder: isRandomPlayer,
                     isSynchronousMode: isSynchronousMode
                 );
