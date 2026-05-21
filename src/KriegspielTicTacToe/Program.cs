@@ -20,9 +20,9 @@ class Program {
         };
 
         rootCommand.SetAction((parseResult) => {
-                var file = parseResult.GetValue(Options.StateFileOption)!;  // has non-null default value.
+                var file = parseResult.GetValue(Options.StateFileOption)!;
                 var doForceNewGame = parseResult.GetValue(Options.ForceNewGameOption);
-                var players = parseResult.GetValue(Options.PlayersOption)!; // has non-null default value.
+                var players = parseResult.GetValue(Options.PlayersOption)!;
                 var size = parseResult.GetValue(Options.SizeOption);
                 var boardsNumber = parseResult.GetValue(Options.BoardsNumberOption);
                 var joinAsPlayer = parseResult.GetValue(Options.JoinAsPlayerOption);
