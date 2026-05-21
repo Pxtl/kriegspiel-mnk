@@ -26,17 +26,17 @@ public class PlayActionBuffer {
                 otherA.BoardIndex == action.BoardIndex
                 && otherA.Row == action.Row
                 && otherA.Col == action.Col
-                && otherA.Value != action.Value)
+                && otherA.Player != action.Player)
             ) {
                 space.MarkChar = '█';
                 foreach(var player in GameState.PlayManager.Players) {
-                    space.MakeKnownToPlayer(player.Value);    
+                    space.MakeKnownToPlayer(player);    
                 }
                 continue;
             }
             
-            space.MarkChar = action.Value;
-            space.MakeKnownToPlayer(action.Value);
+            space.MarkChar = action.Player.Value;
+            space.MakeKnownToPlayer(action.Player);
         }
 
         Clear();

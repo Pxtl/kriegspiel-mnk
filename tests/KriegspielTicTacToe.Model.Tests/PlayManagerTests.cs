@@ -5,6 +5,32 @@ using Xunit;
 
 public class PlayManagerTests {
     [Fact]
+    public void Constructor_EmptyBoards() {
+        var state = new TicTacToeState(
+            new[] { 'X', 'O' },
+            Array.Empty<BoardBuilder>(),
+            isRandomPlayerOrder: false,
+            isSynchronousMode: false
+        );
+        state.Boards.Should().BeEmpty();
+        state.PlayManager.Players.Should().ContainInOrder('X', 'O');
+        state.PlayManager.ActivePlayers.Should().ContainInOrder('X', 'O');
+    }
+
+    [Fact]
+    public void Constructor_WithBoardsCreatesProperState() {
+        var state = new TicTacToeState(
+            ['X', 'O'],
+            [new BoardBuilder(3, 3), new BoardBuilder(3, 3)],
+            isRandomPlayerOrder: false,
+            isSynchronousMode: false
+        );
+        state.Boards.Count.Should().Be(2);
+        state.PlayManager.Players.Should().ContainInOrder('X', 'O');
+        state.PlayManager.ActivePlayers.Should().ContainInOrder('X', 'O');
+    }
+
+    [Fact]
     public void Round_RoundIndexStartsAtZero() {
         var state = new TicTacToeState(
             ['X', 'O'],
@@ -23,8 +49,41 @@ public class PlayManagerTests {
             isRandomPlayerOrder: false,
             isSynchronousMode: false
         );
+
         state.PlayManager.EndTurn('X', out _);
         state.PlayManager.ActivePlayers.Should().ContainInOrder('O');
+    }
+
+    [Fact]
+    public void EndTurn_EndRound_TracksRoundIndex() {
+        var state = new TicTacToeState(
+            ['X', 'O'],
+            [new BoardBuilder(3, 3)],
+            isRandomPlayerOrder: false,
+            isSynchronousMode: false
+        );
+
+        state.PlayManager.EndTurn('X', out _);
+        state.PlayManager.EndTurn('O', out _);
+        state.PlayManager.IsRoundOver.Should().BeTrue();
+        state.PlayManager.GameStateText.Should().Be("Round over.");
+    }
+
+    [Fact]
+    public void RoundComplete_OnePlayerResigned() {
+        var state = new TicTacToeState(
+            ['X', 'O'],
+            [new BoardBuilder(3, 3)],
+            isRandomPlayerOrder: false,
+            isSynchronousMode: false
+        );
+
+        state.PlayManager.ResignPlayer('X');
+        state.PlayManager.EndTurn('O', out _);
+
+        state.PlayManager.ActivePlayers.Count().Should().Be(1);
+        state.PlayManager.IsRoundOver.Should().BeTrue();
+        state.PlayManager.GameStateText.Should().Be("Round over.");
     }
 
     [Fact]
@@ -35,9 +94,133 @@ public class PlayManagerTests {
             isRandomPlayerOrder: false,
             isSynchronousMode: true
         );
+
         state.PlayManager.EndTurn('A', out _);
         state.PlayManager.EndTurn('B', out _);
         state.PlayManager.IsRoundOver.Should().BeTrue();
         state.PlayManager.GameStateText.Should().Be("Synchronized play.");
     }
+
+    [Fact]
+    public void RoundComplete_ThreePlayers() {
+        var state = new TicTacToeState(
+            ['A', 'B', 'C'],
+            [new BoardBuilder(3, 3)],
+            isRandomPlayerOrder: false,
+            isSynchronousMode: true
+        );
+
+        state.PlayManager.NumberOfActivePlayers.Should().Be(3);
+
+        state.PlayManager.EndTurn('A', out _);
+        state.PlayManager.EndTurn('B', out _);
+        state.PlayManager.EndTurn('C', out _);
+        state.PlayManager.IsRoundOver.Should().BeTrue();
+        state.PlayManager.GameStateText.Should().Be("Synchronized play.");
+    }
+
+    [Fact]
+    public void ResignPlayer_OnlyNextPlayerCanTakeTurn() {
+        var state = new TicTacToeState(
+            ['A', 'B', 'C'],
+            [new BoardBuilder(3, 3)],
+            isRandomPlayerOrder: false,
+            isSynchronousMode: false
+        );
+
+        state.PlayManager.ResignPlayer('A');
+
+        state.PlayManager.CanTakeTurn('A').Should().BeFalse();
+        state.PlayManager.CanTakeTurn('B').Should().BeTrue();
+        state.PlayManager.CanTakeTurn('C').Should().BeFalse();
+        state.PlayManager.CanTakeTurn('D').Should().BeFalse();
+    }
+
+    [Fact]
+    public void ActivePlayers_ExcludesResignedPlayers() {
+        var state = new TicTacToeState(
+            ['A', 'B', 'C'],
+            [new BoardBuilder(3, 3)],
+            isRandomPlayerOrder: false,
+            isSynchronousMode: false
+        );
+
+        state.PlayManager.ResignPlayer('A');
+        state.PlayManager.ActivePlayers.Should().ContainInOrder('B', 'C');
+    }
+
+    [Fact]
+    public void ResignPlayer_AddsToResignedPlayersSet() {
+        var state = new TicTacToeState(
+            ['A', 'B', 'C'],
+            [new BoardBuilder(3, 3)],
+            isRandomPlayerOrder: false,
+            isSynchronousMode: false
+        );
+
+        state.PlayManager.ResignPlayer('A');
+        state.PlayManager.ResignedPlayersSet.Should().Contain('A');
+    }
+
+    [Fact]
+    public void ResignPlayer_SkipsResignedTurn() {
+        var state = new TicTacToeState(
+            ['A', 'B', 'C'],
+            [new BoardBuilder(3, 3)],
+            isRandomPlayerOrder: false,
+            isSynchronousMode: false
+        );
+
+        state.PlayManager.ResignPlayer('A');
+        state.PlayManager.EndTurn('A', out _); // A was resigned, turn skipped
+
+        state.PlayManager.ActivePlayers.First().Should().Be('B');
+        state.PlayManager.EndTurn('B', out _);
+        state.PlayManager.EndTurn('C', out _);
+    }
+
+    [Fact]
+    public void Constructor_3Players_FirstPlayerIs_A() {
+        var state = new TicTacToeState(
+            ['A', 'B', 'C'],
+            [new BoardBuilder(3, 3)],
+            isRandomPlayerOrder: false,
+            isSynchronousMode: false
+        );
+
+        state.PlayManager.ActivePlayers.First().Should().Be('A');
+    }
+
+    [Fact]
+    public void Constructor_RandomPlayer() {
+        var state = new TicTacToeState(
+            ['A', 'B', 'C'],
+            [new BoardBuilder(3, 3)],
+            isRandomPlayerOrder: true,
+            isSynchronousMode: false
+        );
+        var firstPlayer = state.PlayManager.ActivePlayers.First();
+        var expectedPlayers = new[] { 'A', 'B', 'C' };
+        expectedPlayers.Contains(firstPlayer).Should().BeTrue();
+    }
+
+
+    [Fact]
+    public void CanTakeTurn_AllAvailablePlayersSynchronousMode() {
+        var state = new TicTacToeState(
+            ['A', 'B', 'C'],
+            [new BoardBuilder(3, 3)],
+            isRandomPlayerOrder: false,
+            isSynchronousMode: true
+        );
+
+        state.PlayManager.ResignPlayer('A');
+        
+        state.PlayManager.CanTakeTurn('A').Should().BeFalse();
+        
+        state.PlayManager.CanTakeTurn('B').Should().BeTrue();
+        state.PlayManager.CanTakeTurn('C').Should().BeTrue();
+        state.PlayManager.CanTakeTurn('D').Should().BeTrue();
+    }
+
 }

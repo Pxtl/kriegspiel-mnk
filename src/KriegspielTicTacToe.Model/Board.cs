@@ -123,7 +123,7 @@ public record Board {
                         }
                     }
                     if(isWinner) {
-                        result.Add(new PlayerScore(comparator.Value, 1));
+                        result.Add(new PlayerScore(comparator, 1));
                     }
                 }
             }
@@ -140,14 +140,14 @@ public record Board {
                         }
                     }
                     if(isWinner) {
-                        result.Add(new PlayerScore(comparator.Value, 1));
+                        result.Add(new PlayerScore(comparator, 1));
                     }
                 }
             }
             
             //create dummy scope to hide comparator var
             {
-                //todo: support non-square Spacess, deduplicate.
+                //todo: support non-square Spaces, deduplicate.
                 //identity diagonal
                 var comparator = Spaces[0,0].MarkChar;
                 if(comparator.HasValue) {
@@ -160,7 +160,7 @@ public record Board {
                         }
                     }
                     if(isWinner) {
-                        result.Add(new PlayerScore(comparator.Value, 1));
+                        result.Add(new PlayerScore(comparator, 1));
                     }
                 }
             }
@@ -178,7 +178,7 @@ public record Board {
                         }
                     }
                     if(isWinner) {
-                        result.Add(new PlayerScore(comparator.Value, 1));
+                        result.Add(new PlayerScore(comparator, 1));
                     }
                 }
             }

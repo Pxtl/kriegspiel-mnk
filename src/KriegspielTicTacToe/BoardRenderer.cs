@@ -26,7 +26,7 @@ public static class BoardRenderer {
                     //internal border
                     DrawBorderRow(state, nextDrawnBoardIndex, "├", "┼", "┤", "───", showBoardCode: false);
                 }
-                DrawBoardSpacesRow(state, nextDrawnBoardIndex, player, "|", activeBoardIndex, row);
+                DrawBoardSpacesRow(state, nextDrawnBoardIndex, player, "│", activeBoardIndex, row);
             }
             nextDrawnBoardIndex = DrawBorderRow(state, nextDrawnBoardIndex, "└", "┴", "┘", "───", showBoardCode: false);
             Console.WriteLine();

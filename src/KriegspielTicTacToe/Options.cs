@@ -8,7 +8,7 @@ using System.CommandLine;
 internal static class Options {
     public static Option<FileInfo> StateFileOption = new ("--file", "-f") {
         Description = "Path to the json file where gamestate is stored.  Will be resumed automatically if you kill the game (ctrl-C).  Use a fileshare for network multiplayer.",
-        DefaultValueFactory = (ArgumentResult) => StateUtility.DefaultStateFilePath
+        DefaultValueFactory = (ArgumentResult) => StateStorage.DefaultStateFilePath
     };
 
     public static Option<bool> ForceNewGameOption = new ("--force", "-F") {

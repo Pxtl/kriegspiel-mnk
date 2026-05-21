@@ -3,22 +3,12 @@ namespace KriegspielTicTacToe.Model;
 using OneOf;
 using OneOf.Types;
 
-/// <summary>
-/// Object that models the full state of the game.  Is serialized into a json file so all players can share reading it.
-/// </summary>
 public record TicTacToeState {
-    #region constructors
-    /// <summary>
-    /// This constructor is only used by the serializer, never use it.
-    /// </summary>
     public TicTacToeState() { 
         Boards = [];
-        PlayManager = new PlayManager();
+        PlayManager = new RoundRobinPlayManager([]);
     }
 
-    /// <summary>
-    /// Construct a new gamestate object.  Note that there is no protection at this level against impossible values.
-    /// </summary>
     public TicTacToeState(
         char[] players,
         IEnumerable<BoardBuilder> boardBuilders,
@@ -28,24 +18,25 @@ public record TicTacToeState {
         if(isRandomPlayerOrder) { 
             Random.Shared.Shuffle(players); 
         }
-        PlayManager = new PlayManager
-        {
-            Players = players.ToList(),
-            IsSynchronousMode = isSynchronousMode
-        };
+        var playerList = players.Select(c => new Player(c.ToString())).ToList();
+        PlayManager = (isSynchronousMode)
+            ? new SynchronizedPlayManager(playerList)
+            : new RoundRobinPlayManager(playerList);
         Boards = boardBuilders.Select(b => new Board(b)).ToList();
+        Initialize();
     }
-    #endregion
 
-    #region main data properties
+    public void Initialize() {
+        PlayManager.PlayActionBuffer = PlayActionBuffer;
+        PlayActionBuffer.GameState = this;
+    }
+
     public PlayManager PlayManager {get;init;}
     public IReadOnlyList<Board> Boards {get;init;}
+    public PlayActionBuffer PlayActionBuffer {get;init;} = new PlayActionBuffer();
 
-    #endregion
-
-    #region methods   
-    public Board GetBoardByCode(int boardCode)
-        => Boards[boardCode-1];
+    public Board GetBoardByCode(int boardCode) => Boards[boardCode - 1];
+    public Board GetBoardByIndex(int boardIndex) => Boards[boardIndex];
 
     public OneOf<NotFound, BoardIsDone, Result<int>> SelectBoard(int boardCode)
         => (boardCode <= 0 || boardCode > Boards.Count)
@@ -54,48 +45,42 @@ public record TicTacToeState {
             ? new BoardIsDone()
             : new Result<int>(boardCode - 1);
 
-    /// <summary>
-    /// Play a space by its space code.
-    /// </summary>
-    public OneOf<Success, Result<char>, AlreadyPlayed, NotFound> PlaySpace(int boardIndex, int spaceCode) {
-        var board = Boards[boardIndex];
-        if (board.TryGetCoordinatesFromSpaceIndexCode(spaceCode, out var col, out var row)) {
-            return PlaySpace(boardIndex, col, row)
-                .Match<OneOf<Success, Result<char>, AlreadyPlayed, NotFound>>( //have to provide return-type when going from OneOf to OneOf
-                    success => success,
-                    result => result,
-                    alreadyPlayed => alreadyPlayed
-                );
-        } else {
+    public OneOf<NotFound, BoardIsDone, Result<int>> PlaySpace(
+        int boardIndex,
+        int spaceCode,
+        Player player
+    ) {
+        if (spaceCode <= 0) {
             return new NotFound();
         }
-    }
-    
-    /// <summary>
-    /// Play a space by its coordinates.
-    /// </summary>
-    public OneOf<Success, Result<char>, AlreadyPlayed> PlaySpace(int boardIndex, int col, int row) {
         var board = Boards[boardIndex];
-        var space = board.Spaces[col, row];
-        if (space.MarkChar == PlayManager.CurrentTurnPlayer) {
-            return new AlreadyPlayed();
-        } else {
-            space.MakeKnownToPlayer(PlayManager.CurrentTurnPlayer);
-            var foundMark = space.MarkChar;
-            if (foundMark.HasValue) {
-                return new Result<char>(foundMark.Value);
-            } else {
-                space.MarkChar = PlayManager.CurrentTurnPlayer;
-                return new Success();
-            }
+        if (board.TryGetCoordinatesFromSpaceIndexCode(spaceCode, out var col, out var row)) {
+            var space = board.Spaces[col, row];
+            return ExecutePlay(boardIndex, space, player).Match(
+                success => new NotFound(),
+                result => new NotFound(),
+                alreadyPlayed => new NotFound()
+            );
         }
+        return new NotFound();
     }
-    #endregion
 
-    #region helper properties
-    /// <summary>
-    /// Returns a list of the active board indices. 0-based.
-    /// </summary>
+    private OneOf<ActionQueuedSuccessfully, Result<Player>, AlreadyPlayed> ExecutePlay(
+        int boardIndex,
+        Space space,
+        Player player
+    ) {
+        if (space.IsKnownToPlayer(player.Value)) {
+            return new AlreadyPlayed();
+        }
+        if (space.MarkChar.HasValue) {
+            space.MakeKnownToPlayer(player);
+            return new Result<Player>(space.MarkChar.Value);
+        }
+        PlayActionBuffer.Add(new TicTacToePlayAction(boardIndex, 0, 0, player));
+        return new ActionQueuedSuccessfully();
+    }
+
     [JsonIgnore()]
     public IEnumerable<int> ActiveBoardIndices {get {
         for(int i = 0; i < Boards.Count; i+=1) {
@@ -105,74 +90,36 @@ public record TicTacToeState {
         }
     }}
     
-    /// <summary>
-    /// Returns null if there are 0 or multiple active boards. Board Index if there's 1.
-    /// </summary>
     [JsonIgnore()]
     public int? SingleActiveBoardIndex {get {
         var firstElements = ActiveBoardIndices.Take(2).ToArray();
-        return (firstElements.Length == 1)
-            ? firstElements.Single()
-            : null;
+        return (firstElements.Length == 1) ? firstElements.Single() : null;
     }}
 
-    /// <summary>
-    /// Returns true if the game has ended, whether by tie or by winner.
-    /// </summary>
     [JsonIgnore()]
     public bool IsGameOver
         => Boards.All(b => b.IsDone) || PlayManager.ActivePlayers.Count() == 1;
     
-    /// <summary>
-    /// Provides a short text summary of the current game-state. Particularly useful when the game is over.
-    /// </summary>
     [JsonIgnore()]
     public string GameStateText
         => IsGameOver 
-        ? (Winner.HasValue 
-            ? $"Player '{Winner.Value}' wins!." 
-            : "Tie game."
-        ) 
+        ? "Game over."
         : PlayManager.GameStateText;
     
     [JsonIgnore()]
-    /// <summary>
-    /// Get the winner of the game.  Returns null if nobody has won yet or the
-    /// game was a tie.  Note this is a heavy calculation and is not cached, but
-    /// computers are fast.  TODO: Optimization.
-    /// </summary>
-    public char? Winner {
+    public Player? Winner {
         get {
-            if(!IsGameOver) {
-                return null;
-            }
-            
-            if(PlayManager.ActivePlayers.Count() == 1) {
-                return PlayManager.ActivePlayers.Single();
-            }
-            var highestScore = ScoreCard.HighestScore;
-
-            return highestScore.HasValue 
-                ? highestScore.Value.Player 
-                : null; // no winner found
+            if(!IsGameOver) return null;
+            if(PlayManager.ActivePlayers.Count() == 1) return PlayManager.ActivePlayers.Single();
+            return null;
         }
     }
     
     [JsonIgnore()]
     public ScoreCard ScoreCard 
-        => Boards.Aggregate(
-            new ScoreCard(),
-            (prod, next) => prod + next.ScoreCard
-            );
-    #endregion
+        => Boards.Aggregate(new ScoreCard(), (prod, next) => prod + next.ScoreCard);
 }
 
-/// <summary>
-/// Empty result struct for OneOf, used when a player tries to play on a space they already played.
-/// </summary>
 public struct AlreadyPlayed;
-
-/// <summary>
-/// Empty result struct for OneOf, used when the player tries to select a board that is done.
-/// </summary>
 public struct BoardIsDone;
+public struct ActionQueuedSuccessfully;
