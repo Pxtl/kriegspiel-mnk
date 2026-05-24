@@ -227,17 +227,31 @@ internal static class GameLogic {
             Console.Out.WriteLine("Who will take the next turn? Press the player's character key to take their turn.");
             var key = Console.ReadKey();
 
-            // have to convert to string for case-insensitive comparison.
-            var keyChar = key.KeyChar;
-            var playerAsString = playManager
-                .PlayersAvailableForTurn
-                .SingleOrDefault(p => p.Value == keyChar);
+            // have to convert to character value for comparison.
+            // Handle Escape key to quit the game
+            if (key.Key == ConsoleKey.Escape) {
+                Console.Out.WriteLine("Quitting.");
+                return new Player(' ');
+            }
+            var keyStr = key.KeyChar.ToString();
+            if (string.IsNullOrEmpty(keyStr)) {
+                // Key was not a character (e.g., F1-F12, Arrow keys, etc.)
+                Console.Out.WriteLine("Please enter a character to select a player.");
+                continue;
+            }
 
-            if (playerAsString != null) {
+            var player = playManager
+                .PlayersAvailableForTurn
+                .SingleOrDefault(p => p.Value == keyStr[0]);
+
+            if (player != null) {
                 // write blank line
                 Console.Out.WriteLine();
-                return playerAsString;
+                return player;
             }
+            
+            // No player matched - inform user
+            Console.Out.WriteLine($"No player found for '{keyStr}'. Please try again.");
         }
     }
 }
