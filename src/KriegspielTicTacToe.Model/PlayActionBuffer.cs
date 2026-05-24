@@ -22,7 +22,7 @@ public class PlayActionBuffer {
                 continue;
             }
             
-            if (Actions.Any(otherA => 
+            if (Actions.Any(otherA =>
                 otherA.BoardIndex == action.BoardIndex
                 && otherA.Row == action.Row
                 && otherA.Col == action.Col
