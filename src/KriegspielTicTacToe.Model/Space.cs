@@ -8,21 +8,21 @@ public record Space {
     /// The current state of the space - null means available.
     /// '█' means it's an impasse (two players contested this space in same round).
     /// </summary>
-    public char? MarkChar {get;set;}
+    public string? Mark {get;set;}
     
-    private HashSet<char> _knownToPlayersSet {get;set;} = [];
-    public IReadOnlySet<char> KnownToPlayersSet => _knownToPlayersSet;
+    private HashSet<Player> _knownToPlayersSet {get;set;} = [];
+    public IReadOnlySet<Player> KnownToPlayersSet => _knownToPlayersSet;
     
     /// <summary>
     /// Test if this space is known to the given player.
     /// </summary>
-    public bool IsKnownToPlayer(char player) 
+    public bool IsKnownToPlayer(Player player) 
         => KnownToPlayersSet.Contains(player);
     
     /// <summary>
     /// Mark this space as known to the given player.
     /// </summary>
-    public void MakeKnownToPlayer(char player) {
+    public void MakeKnownToPlayer(Player player) {
         _knownToPlayersSet.Add(player);
     }
 
@@ -31,8 +31,8 @@ public record Space {
     /// Show always if the player is null.
     /// Impasse marker '█' is visible to all players.
     /// </summary>
-    public string ToString(char? player)
-        => (!player.HasValue || IsKnownToPlayer(player.Value))
-            ? (MarkChar.ToString() ?? " ")
+    public string ToString(Player? player)
+        => (player == null || IsKnownToPlayer(player))
+            ? (Mark ?? " ")
             : " ";
 }

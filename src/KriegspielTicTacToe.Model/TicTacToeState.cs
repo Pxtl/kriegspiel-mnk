@@ -15,13 +15,16 @@ public record TicTacToeState {
         bool isRandomPlayerOrder,
         bool isSynchronousMode
     ) {
-        var playerList = players.Select(c => (Player)c).ToList();
+        List<Player> playerList = players
+            .Select(c => new Player(c.ToString()))
+            .ToList();
+        playerList = playerList.ToList();
         if(isRandomPlayerOrder) { 
             Random.Shared.Shuffle((Player[])playerList.ToArray());
         }
-        PlayManager = (isSynchronousMode)
-            ? new SynchronizedPlayManager(playerList)
-            : new RoundRobinPlayManager(playerList);
+        PlayManager = isSynchronousMode
+            ? new SynchronizedPlayManager(playerList.AsReadOnly())
+            : new RoundRobinPlayManager(playerList.AsReadOnly());
         Boards = boardBuilders.Select(b => new Board(b)).ToList();
         Initialize();
     }
@@ -36,8 +39,8 @@ public record TicTacToeState {
             Random.Shared.Shuffle((Player[])players); // explicit generic
         }
         PlayManager = (isSynchronousMode)
-            ? new SynchronizedPlayManager(players.ToList())
-            : new RoundRobinPlayManager(players.ToList());
+            ? new SynchronizedPlayManager(players.AsReadOnly())
+            : new RoundRobinPlayManager(players.AsReadOnly());
         Boards = boardBuilders.Select(b => new Board(b)).ToList();
         Initialize();
     }
@@ -72,14 +75,10 @@ public record TicTacToeState {
         var board = Boards[boardIndex];
         if (board.TryGetCoordinatesFromSpaceIndexCode(spaceCode, out var col, out var row)) {
             var space = board.Spaces[col, row];
-            if (space.IsKnownToPlayer(player)) {
+            if (space.Mark != null) {
                 return new AlreadyPlayed();
             }
-            if (space.MarkChar.HasValue) {
-                space.MakeKnownToPlayer(player);
-                return new Result<Player>(space.MarkChar.Value);
-            }
-            PlayActionBuffer.Add(new TicTacToePlayAction(boardIndex, 0, 0, player));
+            PlayActionBuffer.Add(new TicTacToePlayAction(boardIndex, col, row, player));
             return new ActionQueuedSuccessfully();
         }
         return new NotFound();

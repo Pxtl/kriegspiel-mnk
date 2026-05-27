@@ -1,37 +1,48 @@
 namespace KriegspielTicTacToe.Model;
 
 /// <summary>
-/// Represents a player in the game. Stores their marker character.
+/// Represents a player in the game. Stores their marker string.
 /// </summary>
-public record Player(char Value) {
-    /// <summary>
-    /// Create a Player from a 1-character string.
-    /// </summary>
-    public static Player FromString(string? value) =>
-        char.TryParse(value, out var c) ? new Player(c) : default;
-    
+public record Player {
+    public Player(string mark) {
+        if (mark == null) {
+            throw new ArgumentNullException("Mark must be provided", nameof(mark));
+        } else if (mark.Length != 1) {
+            throw new ArgumentException("Mark must be length 1", nameof(mark));
+        }
+        Mark = mark;
+    }
+    public string Mark {get; init;}
     /// <summary>
     /// Create a Player from a char.
     /// </summary>
-    public static Player FromChar(char? value) => new Player((char?)value);
+    public static Player FromChar(char value) => new Player(value.ToString());
     
     /// <summary>
-    /// Implicit conversion from 1-character string to Player.
+    /// Create a Player from a 1-character nullable string.  Returns null if the
+    /// parameter is not a 1-character string.
     /// </summary>
-    public static implicit operator Player(string? value) => FromString(value);
+    public static Player? FromString(string? value) {
+        if (value == null) {
+            return null;
+        } else if (value.Length != 1) {
+            return null;
+        }
+        return new Player(value);
+    }
+    
+    /// <summary>
+    /// Implicit conversion from char string to Player.
+    /// </summary>
+    public static implicit operator Player(string value) => new Player(value);
     
     /// <summary>
     /// Implicit conversion from char to Player.
     /// </summary>
-    public static implicit operator Player(char? value) => new Player((char?)value);
-    
+    public static implicit operator Player(char value) => new Player(value.ToString());
+        
     /// <summary>
     /// Implicit conversion from Player to string.
     /// </summary>
-    public static implicit operator string(Player player) => player.Value.ToString() ?? string.Empty;
-    
-    /// <summary>
-    /// Implicit conversion from Player to char.
-    /// </summary>
-    public static implicit operator char(Player player) => player.Value;
+    public static implicit operator string(Player player) => player.Mark;
 }

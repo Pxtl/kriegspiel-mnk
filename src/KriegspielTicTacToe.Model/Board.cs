@@ -100,7 +100,7 @@ public record Board {
     /// </summary>
     [JsonIgnore()]
     public bool IsFull 
-        => BoardAsEnumerable().All(s => s.MarkChar.HasValue);
+        => BoardAsEnumerable().All(s => s.Mark != null);
 
     [JsonIgnore()]
     public bool IsDone
@@ -114,16 +114,17 @@ public record Board {
             //search for full-rows
             for(int row = 0; row < Spaces.GetLength(1); row+=1) {
                 bool isWinner = true;
-                var comparator = Spaces[0,row].MarkChar;
-                if(comparator.HasValue) {
+                string? comparator = Spaces[0,row].Mark;
+                if(comparator != null) {
                     for(int col = 1; col < Spaces.GetLength(0); col+=1) {
-                        if(comparator != Spaces[col,row].MarkChar) {
+                        if(comparator != Spaces[col,row].Mark) {
                             isWinner = false;
                             break;
                         }
                     }
                     if(isWinner) {
-                        result.Add(new PlayerScore(comparator, 1));
+                        var player = new Player(comparator);
+                        result.Add(new PlayerScore(player, 1));
                     }
                 }
             }
@@ -131,16 +132,17 @@ public record Board {
             //todo: deduplicate.  Rotate array and re-run?
             for(int col = 0; col < Spaces.GetLength(0); col+=1) {
                 bool isWinner = true;
-                var comparator = Spaces[col,0].MarkChar;
-                if(comparator.HasValue) {
+                string? comparator = Spaces[col,0].Mark;
+                if(comparator != null) {
                     for(int row = 1; row < Spaces.GetLength(1); row+=1) {
-                        if(comparator != Spaces[col,row].MarkChar) {
+                        if(comparator != Spaces[col,row].Mark) {
                             isWinner = false;
                             break;
                         }
                     }
                     if(isWinner) {
-                        result.Add(new PlayerScore(comparator, 1));
+                        var player = new Player(comparator);
+                        result.Add(new PlayerScore(player, 1));
                     }
                 }
             }
@@ -149,36 +151,38 @@ public record Board {
             {
                 //todo: support non-square Spaces, deduplicate.
                 //identity diagonal
-                var comparator = Spaces[0,0].MarkChar;
-                if(comparator.HasValue) {
+                string? comparator = Spaces[0,0].Mark;
+                if(comparator != null) {
                     bool isWinner = true;
                     for(int col=1; col < Spaces.GetLength(0) && col < Spaces.GetLength(1); col+=1) {
                         var row = col;
-                        if(comparator != Spaces[col,row].MarkChar) {
+                        if(comparator != Spaces[col,row].Mark) {
                             isWinner = false;
                             break;
                         }
                     }
                     if(isWinner) {
-                        result.Add(new PlayerScore(comparator, 1));
+                        var player = new Player(comparator);
+                        result.Add(new PlayerScore(player, 1));
                     }
                 }
             }
             //create dummy scope to hide comparator var
             {
                 //inverse diagonal
-                var comparator = Spaces[0,Spaces.GetLength(1)-1].MarkChar;
-                if(comparator.HasValue) {
+                string? comparator = Spaces[0,Spaces.GetLength(1)-1].Mark;
+                if(comparator != null) {
                     bool isWinner = true;
                     for(int col=1; col < Spaces.GetLength(0) && col < Spaces.GetLength(1); col+=1) {
                         var row = Spaces.GetLength(1) - 1 - col;
-                        if(comparator != Spaces[col,row].MarkChar) {
+                        if(comparator != Spaces[col,row].Mark) {
                             isWinner = false;
                             break;
                         }
                     }
                     if(isWinner) {
-                        result.Add(new PlayerScore(comparator, 1));
+                        var player = new Player(comparator);
+                        result.Add(new PlayerScore(player, 1));
                     }
                 }
             }

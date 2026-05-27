@@ -6,6 +6,4 @@ public record TicTacToePlayAction(
     int Row,
     Player Player
 )
-{
-    public char Value => Player.Value;
-}
+{}

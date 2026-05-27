@@ -65,7 +65,7 @@ internal static class GameLogic {
                         ? OneOf<Result<Player>, GameIsOver>.FromT1(new GameIsOver())
                         : new Result<Player>(player);
                 },
-                localHotseatGame => new Result<Player>(DoPlayerChooserLoop(state.PlayManager))
+                localHotseatGame => DoPlayerChooserLoop(state.PlayManager)
             );
 
             currentPlayerChosen.Switch(
@@ -210,14 +210,14 @@ internal static class GameLogic {
         return currentPlayerIsDoneTurn;
     }
 
-    internal static Player DoPlayerChooserLoop(PlayManager playManager) {
+    internal static OneOf<Result<Player>, GameIsOver> DoPlayerChooserLoop(PlayManager playManager) {
         while(true) {
             if (playManager.PlayersAvailableForTurn.Count() == 1) {
                 var currentPlayer = playManager.PlayersAvailableForTurn.Single();
                 Console.Out.WriteLine($"Player {currentPlayer} ready? Press any key to continue...");
                 Console.ReadKey(intercept: true);
                 Console.WriteLine();
-                return currentPlayer;
+                return new Result<Player>(currentPlayer);
             }
             if (playManager.PlayersAvailableForTurn.Count() == 0) {
                 throw new InvalidOperationException("No players are available to take a turn.");
@@ -231,7 +231,7 @@ internal static class GameLogic {
             // Handle Escape key to quit the game
             if (key.Key == ConsoleKey.Escape) {
                 Console.Out.WriteLine("Quitting.");
-                return new Player(' ');
+                return new GameIsOver();
             }
             var keyStr = key.KeyChar.ToString();
             if (string.IsNullOrEmpty(keyStr)) {
@@ -242,12 +242,13 @@ internal static class GameLogic {
 
             var player = playManager
                 .PlayersAvailableForTurn
-                .SingleOrDefault(p => p.Value == keyStr[0]);
+                .SingleOrDefault(p => p.Mark == keyStr);
 
             if (player != null) {
                 // write blank line
                 Console.Out.WriteLine();
-                return player;
+                return new Result<Player>(player);
+
             }
             
             // No player matched - inform user

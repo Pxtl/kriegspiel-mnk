@@ -36,15 +36,13 @@ class Program {
 
                 var playerList = new List<Model.Player>();
                 foreach(var player in players!) {
-                    foreach(var charInPlayer in player) {
-                        playerList.Add(new Model.Player(charInPlayer));
-                    }
+                    playerList.Add(new Model.Player(player));
                 }
                 var playerArray = playerList.ToArray();
 
                 var joinAsPlayerUnion = joinAsPlayer == null
                     ? OneOf<Model.Player, LocalHotseatGame>.FromT1(new LocalHotseatGame())
-                    : OneOf<Model.Player, LocalHotseatGame>.FromT0(new Model.Player(joinAsPlayer[0]));
+                    : OneOf<Model.Player, LocalHotseatGame>.FromT0(new Model.Player(joinAsPlayer));
 
                 for(var i = 0; i < boardsNumber!; i+=1) {
                     boardBuilders[i] = new Model.BoardBuilder(size!.Value, size!.Value);
