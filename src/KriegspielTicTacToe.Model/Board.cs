@@ -111,6 +111,10 @@ public record Board {
     public ScoreCard ScoreCard {
         get {
             var result = new System.Collections.Generic.List<PlayerScore>();
+            var width = Spaces.GetLength(0);
+            var height = Spaces.GetLength(1);
+            var diagLen = (int)System.Math.Min(width, height);
+            
             //search for full-rows
             for(int row = 0; row < Spaces.GetLength(1); row+=1) {
                 bool isWinner = true;
@@ -145,15 +149,14 @@ public record Board {
                 }
             }
             
-            //create dummy scope to hide lineOwner var
+            //identity diagonal: starts at left edge (row = H - diagLen), ends at right-edge (col = width - 1)
             {
-                //todo: support non-square Spaces, deduplicate.
-                //identity diagonal
-                string? lineOwner = Spaces[0,0].Mark;
+                var startRow = height - diagLen;
+                string? lineOwner = Spaces[0,startRow].Mark;
                 if(lineOwner != null) {
                     bool isWinner = true;
-                    for(int col=1; col < Spaces.GetLength(0) && col < Spaces.GetLength(1); col+=1) {
-                        var row = col;
+                    for(int col = 1; col < diagLen; col+=1) {
+                        var row = startRow + col;
                         if(lineOwner != Spaces[col,row].Mark) {
                             isWinner = false;
                             break;
@@ -164,14 +167,14 @@ public record Board {
                     }
                 }
             }
-            //create dummy scope to hide lineOwner var
+            //inverse diagonal: starts at left edge (row = diagLen - 1), ends at right-edge (col = width - 1)
             {
-                //inverse diagonal
-                string? lineOwner = Spaces[0,Spaces.GetLength(1)-1].Mark;
+                var startRow = diagLen - 1;
+                string? lineOwner = Spaces[0,startRow].Mark;
                 if(lineOwner != null) {
                     bool isWinner = true;
-                    for(int col=1; col < Spaces.GetLength(0) && col < Spaces.GetLength(1); col+=1) {
-                        var row = Spaces.GetLength(1) - 1 - col;
+                    for(int col = 1; col < diagLen; col+=1) {
+                        var row = startRow - col;
                         if(lineOwner != Spaces[col,row].Mark) {
                             isWinner = false;
                             break;
