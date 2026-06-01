@@ -134,12 +134,6 @@ public static class BoardRenderer
         sb.Append($"{borderBarString}{body}");
     }
 
-    /// <summary>
-    /// Render helper method for string output.
-    /// </summary>
-    public static string Render(TicTacToeState state, Player player, int? activeBoardIndex)
-        => DrawBoards(state, player, activeBoardIndex);
-
     public static int GetCursorX(this StringBuilder sb) {
         int charsSinceLineBreak = 0;
 
