@@ -16,6 +16,9 @@ public static class BoardRenderer
     public static string DrawBoards(TicTacToeState state, Player player, int? activeBoardIndex,
         int cursorX = 0, int maxWidth = int.MaxValue)
     {
+        // default to console window width if int.MaxValue provided
+        maxWidth = maxWidth == int.MaxValue ? Console.WindowWidth : maxWidth;
+
         bool doShowBoardCode = state.Boards.Count > 1;
         var maxRowCount = state.Boards.Max(b => b.RowCount);
         var sb = new StringBuilder();
