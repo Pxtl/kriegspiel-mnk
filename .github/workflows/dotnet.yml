@@ -9,9 +9,6 @@ on:
 jobs:
   build-and-test:
     runs-on: ${{ matrix.os }}
-    env:
-      # Node.js 20 actions are deprecated. To opt into Node.js 24 now, set the FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
     strategy:
       matrix:
         # NOTICE: "windows-latest" requests are being redirected to "windows-2025-vs2026" by June 15, 2026
@@ -19,10 +16,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '10.0.x'
 
