@@ -24,8 +24,9 @@ public class BoardRendererTests {
   │   │   │   │
   └───┴───┴───┘
   "
-            .Substring(1) //skip the leading linebreak needed for legibility
-            .TrimEnd();
+            .Substring(Environment.NewLine.Length) //skip the leading linebreak needed for legibility
+            .TrimEnd()
+            .ReplaceLineEndings();
 
         actual.TrimEnd().Should().Be(expected);
     }
@@ -51,8 +52,9 @@ public class BoardRendererTests {
   │   │   │   │
   └───┴───┴───┘
   "
-            .Substring(1) //skip the leading linebreak needed for legibility
-            .TrimEnd();
+            .Substring(Environment.NewLine.Length) //skip the leading linebreak needed for legibility
+            .TrimEnd()
+            .ReplaceLineEndings();
 
         var actual = BoardRenderer.DrawBoards(state, currentPlayer, activeBoardIndex: null);    
         actual.TrimEnd().Should().Be(expected);
@@ -88,8 +90,9 @@ public class BoardRendererTests {
   │   │   │   │
   └───┴───┴───┘
   "
-            .Substring(1) //skip the leading linebreak needed for legibility
-            .TrimEnd();
+            .Substring(Environment.NewLine.Length) //skip the leading linebreak needed for legibility
+            .TrimEnd()
+            .ReplaceLineEndings();
 
         actual.TrimEnd().Should().Be(expected);
     }
@@ -131,8 +134,9 @@ public class BoardRendererTests {
   │   │   │   │
   └───┴───┴───┘
   "
-            .Substring(1) //skip the leading linebreak needed for legibility
-            .TrimEnd();
+            .Substring(Environment.NewLine.Length) //skip the leading linebreak needed for legibility
+            .TrimEnd()
+            .ReplaceLineEndings();
 
         actual.TrimEnd().Should().Be(expected);
     }

@@ -17,7 +17,7 @@ public class SynchronizedPlayManager : PlayManager
     #region properties
     [JsonIgnore()]
     public override string GameStateText
-        => "Synchronized play."
+        => "Synchronized play. "
         + (PlayersAvailableForTurn.Any()
             ? $"Player(s) { string.Join(", ", PlayersAvailableForTurn)} have not taken their turn."
             : "Round complete."

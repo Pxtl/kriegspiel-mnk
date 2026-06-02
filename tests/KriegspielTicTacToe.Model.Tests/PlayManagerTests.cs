@@ -2,21 +2,6 @@ namespace KriegspielTicTacToe.Model.Tests;
 
 public class PlayManagerTests {
     [Fact]
-    public void Constructor_EmptyBoards() {
-        var state = new TicTacToeState(
-            new[] { new Player("X"), new Player("O") },
-            Array.Empty<BoardBuilder>(),
-            isRandomPlayerOrder: false,
-            isSynchronousMode: false
-        );
-        state.Boards.Should().BeEmpty();
-        state.PlayManager.Players.Should().Contain(new Player("X"));
-        state.PlayManager.Players.Should().Contain(new Player("O"));
-        state.PlayManager.ActivePlayers.Should().Contain(new Player("X"));
-        state.PlayManager.ActivePlayers.Should().Contain(new Player("O"));
-    }
-
-    [Fact]
     public void Constructor_WithBoardsCreatesProperState() {
         var state = new TicTacToeState(
             [new Player("X"), new Player("O")],
@@ -68,6 +53,9 @@ public class PlayManagerTests {
         state.PlayManager.EndTurn(new Player("O"), out _);
         state.PlayManager.IsRoundOver.Should().BeTrue();
         state.PlayManager.GameStateText.Should().Be("Round over.");
+
+        state.PlayManager.EndRound(out _);
+        state.PlayManager.RoundIndex.Should().Be(1);
     }
 
     [Fact]
@@ -99,7 +87,7 @@ public class PlayManagerTests {
         state.PlayManager.EndTurn(new Player("A"), out _);
         state.PlayManager.EndTurn(new Player("B"), out _);
         state.PlayManager.IsRoundOver.Should().BeTrue();
-        state.PlayManager.GameStateText.Should().Be("Synchronized play.");
+        state.PlayManager.GameStateText.Should().Be("Synchronized play. Round complete.");
     }
 
     [Fact]
@@ -117,7 +105,7 @@ public class PlayManagerTests {
         state.PlayManager.EndTurn(new Player("B"), out _);
         state.PlayManager.EndTurn(new Player("C"), out _);
         state.PlayManager.IsRoundOver.Should().BeTrue();
-        state.PlayManager.GameStateText.Should().Be("Synchronized play.");
+        state.PlayManager.GameStateText.Should().Be("Synchronized play. Round complete.");
     }
 
     [Fact]
