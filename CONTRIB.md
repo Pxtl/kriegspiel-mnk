@@ -173,7 +173,7 @@ This document captures the coding style patterns used in this project.
         ... 
     }
 
-    public record BoardBuilder(byte Width, byte Height);
+    public record BoardBuilder(sbyte Width, sbyte Height);
     ```
 
 - Use discriminated unions via the `OneOf` library for result types that can
@@ -184,8 +184,8 @@ This document captures the coding style patterns used in this project.
 - Specify generic constraints explicitly when helpful:
 
     ```csharp
-    public static Nullable<TItem> MaxByStrict<TItem, TProperty>(
-        this ICollection<TItem> items, 
+    public static TItem? MaxByStrict<TItem, TProperty>(
+        this IEnumerable<TItem> items, 
         Func<TItem, TProperty> getter) 
         where TItem : struct 
     {
@@ -199,8 +199,8 @@ This document captures the coding style patterns used in this project.
 
     ```csharp
     public static class ExtensionMethods {
-        public static Nullable<TItem> MaxByStrict<TItem, TProperty>(
-            this ICollection<TItem> items, 
+        public static TItem? MaxByStrict<TItem, TProperty>(
+            this IEnumerable<TItem> items, 
             Func<TItem, TProperty> getter) where TItem : struct 
         {
             ...

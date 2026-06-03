@@ -7,7 +7,8 @@ using System.CommandLine;
 /// </summary>
 internal static class Options {
     public static Option<FileInfo> StateFileOption = new ("--file", "-f") {
-        Description = "Path to the json file where gamestate is stored.  Will be resumed automatically if you kill the game (ctrl-C).  Use a fileshare for network multiplayer.",
+        Description = "Path to the json file where gamestate is stored.  Will be resumed automatically if you kill the game (ctrl-C). " 
+            + "Use a fileshare for network multiplayer.",
         DefaultValueFactory = (ArgumentResult) => StateStorage.DefaultStateFilePath
     };
 
@@ -38,15 +39,15 @@ internal static class Options {
         AllowMultipleArgumentsPerToken = true
     };
 
-    public static Option<bool> RandomOption = new Option<bool>("--random", "-r") {
+    public static Option<bool> RandomOption = new("--random", "-r") {
         Description = "Randomize player order."
     };
 
-    public static Option<byte?> SizeOption = new Option<byte?>("--size", "-z") {
+    public static Option<sbyte?> SizeOption = new("--size", "-z") {
         Description = "Board size.  Default is 3x3.",
         DefaultValueFactory = result => 3,
         CustomParser = result => {
-            if(byte.TryParse(result.Tokens.Single().Value, out byte size)) {
+            if(sbyte.TryParse(result.Tokens.Single().Value, out var size)) {
                 if(2<=size && size <= 30) {
                     return size;
                 }
@@ -56,11 +57,21 @@ internal static class Options {
         }
     };
 
-    public static Option<byte?> BoardsNumberOption = new ("--boards", "-b") {
+    public static Option<sbyte?> ScoringLengthOption = new Option<sbyte?>("--scoringlength", "-l") {
+        Description = "How many spaces in a row you must take to score a point. "
+            + "Leave blank to use the full board width.",
+        DefaultValueFactory = result => null
+    };
+
+    public static Option<bool> IsBoardDoneWhenScoredOption = new ("--boarddonewhenscored", "-d") {
+        Description = "If set, the the board is done and closed to new moves when a line is scored."
+    };
+
+    public static Option<sbyte?> BoardsNumberOption = new ("--boards", "-b") {
         Description = "Number of boards.",
         DefaultValueFactory = result => 3,
         CustomParser = result => {
-            if(byte.TryParse(result.Tokens.Single().Value, out byte size)) {
+            if(sbyte.TryParse(result.Tokens.Single().Value, out var size)) {
                 if(1<=size && size <= 9) {
                     return size;
                 }
@@ -75,6 +86,7 @@ internal static class Options {
     };
 
     public static Option<bool> SynchronousModeOption = new ("--synchronous", "-y") {
-        Description = "Moves do not execute until all players in a round have taken a turn.  If two players move to the same square, that square becomes an impasse marker visible to all."
+        Description = "Moves do not execute until all players in a round have taken a turn. " 
+        + "If two players move to the same square, that square becomes an impasse marker visible to all."
     };
 }

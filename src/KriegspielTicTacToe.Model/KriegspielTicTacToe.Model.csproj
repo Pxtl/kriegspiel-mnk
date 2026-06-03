@@ -9,6 +9,7 @@
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="OneOf" Version="3.0.263" />
+    <PackageReference Include="Sundew.Base.Collections.Immutable" Version="16.0.0" />
   </ItemGroup>
 
 </Project>

@@ -158,9 +158,11 @@ public record TicTacToeState {
     
     [JsonIgnore()]
     public ScoreCard ScoreCard 
-        => Boards.Aggregate(new ScoreCard(), (prod, next) => prod + next.ScoreCard);
+        //make sure all players are in the scorecard even those with 0.
+        => new ScoreCard(PlayManager.ActivePlayers.Select(p => new PlayerScore(p, 0))) 
+            // can't use ienumerable.sum on non-numeric objects, operators don't work that way.
+            + Boards.Select(b => b.ScoreCard).SumScoreCards();
 }
-
 public struct AlreadyPlayed;
 public struct BoardIsDone;
 public struct ActionQueuedSuccessfully;

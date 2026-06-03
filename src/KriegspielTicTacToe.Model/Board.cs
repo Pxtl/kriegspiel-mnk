@@ -3,25 +3,43 @@ namespace KriegspielTicTacToe.Model;
 using System.IO;
 using OneOf;
 
+
 /// <summary>
 /// JSON-serializable model object for a single tic-tac-toe board.
 /// </summary>
 public record Board {
     #region constructors
     public Board() {}
-    public Board(BoardBuilder builder) : this(builder.Width, builder.Height) {}
-    public Board(byte width, byte height) {
+    public Board(BoardBuilder builder) : this(builder.Width, builder.Height, builder.ScoringLength) {}
+    public Board(sbyte width, sbyte height) : this(width, height, null) {}
+    public Board(sbyte width, sbyte height, sbyte? scoringLength = null, bool isBoardDoneWhenScored = false) {
         Spaces = new Space[width, height];
         for (var col = 0; col < Spaces.GetLength(0); col+=1) {
             for (var row = 0; row < Spaces.GetLength(1); row+=1) {
                 Spaces[col,row] = new Space();
             }
         }
+
+        if (scoringLength.HasValue) {
+            HorizontalScoringLength = scoringLength.Value;
+            VerticalScoringLength = scoringLength.Value;
+            DiagonalScoringLength = scoringLength.Value;
+        } else {
+            HorizontalScoringLength = width;
+            VerticalScoringLength = height;
+            DiagonalScoringLength = Math.Min(width, height);
+        }
+
+        IsBoardDoneWhenScored = isBoardDoneWhenScored;
     }
     #endregion
 
     #region main data properties
     public Space[,] Spaces {get;set;} = new Space[1,1]{{new Space()}}; //default value is dummy board, never use.
+    public sbyte HorizontalScoringLength {get;init;}
+    public sbyte VerticalScoringLength {get;init;}
+    public sbyte DiagonalScoringLength {get;init;}
+    public bool IsBoardDoneWhenScored {get;init;}
     #endregion
 
     #region Methods
@@ -64,7 +82,7 @@ public record Board {
     /// Get all of the spaces on the board as a big enumerable that you can
     /// foreach across.
     /// </summary>
-    public System.Collections.Generic.IEnumerable<Space> BoardAsEnumerable() {
+    public IEnumerable<Space> BoardAsEnumerable() {
         foreach(var space in Spaces) {
             yield return space;    
         }
@@ -105,85 +123,92 @@ public record Board {
     [JsonIgnore()]
     public bool IsDone
         => IsFull 
-        || ScoreCard.HighestScore.HasValue;
+        || (IsBoardDoneWhenScored && ScoreCard.PlayerScores.Any(s => s.Score > 0));
 
     [JsonIgnore()]
     public ScoreCard ScoreCard {
         get {
-            var result = new System.Collections.Generic.List<PlayerScore>();
-            //search for full-rows
-            for(int row = 0; row < Spaces.GetLength(1); row+=1) {
-                bool isWinner = true;
-                string? lineOwner = Spaces[0,row].Mark;
-                if(lineOwner != null) {
-                    for(int col = 1; col < Spaces.GetLength(0); col+=1) {
-                        if(lineOwner != Spaces[col,row].Mark) {
-                            isWinner = false;
-                            break;
-                        }
-                    }
-                    if(isWinner) {
-                        result.Add(new PlayerScore(new Player(lineOwner), 1));
-                    }
-                }
-            }
-            //search for full-columns
-            //todo: deduplicate.  Rotate array and re-run?
-            for(int col = 0; col < Spaces.GetLength(0); col+=1) {
-                bool isWinner = true;
-                string? lineOwner = Spaces[col,0].Mark;
-                if(lineOwner != null) {
-                    for(int row = 1; row < Spaces.GetLength(1); row+=1) {
-                        if(lineOwner != Spaces[col,row].Mark) {
-                            isWinner = false;
-                            break;
-                        }
-                    }
-                    if(isWinner) {
-                        result.Add(new PlayerScore(new Player(lineOwner), 1));
-                    }
-                }
-            }
+            var result = new ScoreCard();
+            var width = Spaces.GetLength(0);
+            var height = Spaces.GetLength(1);
             
-            //create dummy scope to hide lineOwner var
-            {
-                //todo: support non-square Spaces, deduplicate.
-                //identity diagonal
-                string? lineOwner = Spaces[0,0].Mark;
-                if(lineOwner != null) {
-                    bool isWinner = true;
-                    for(int col=1; col < Spaces.GetLength(0) && col < Spaces.GetLength(1); col+=1) {
-                        var row = col;
-                        if(lineOwner != Spaces[col,row].Mark) {
-                            isWinner = false;
-                            break;
-                        }
-                    }
-                    if(isWinner) {
-                        result.Add(new PlayerScore(new Player(lineOwner), 1));
+            for(sbyte row = 0; row < height; row+=1) {
+                for(sbyte col = 0; col < width; col+=1) {
+                    string? lineOwnerMark = Spaces[col,row].Mark;
+                    if(lineOwnerMark != null) {
+                        var lineOwnerPlayer = new Player(lineOwnerMark);
+                        result += ScoreSpace(lineOwnerPlayer, (col, row));
                     }
                 }
             }
-            //create dummy scope to hide lineOwner var
-            {
-                //inverse diagonal
-                string? lineOwner = Spaces[0,Spaces.GetLength(1)-1].Mark;
-                if(lineOwner != null) {
-                    bool isWinner = true;
-                    for(int col=1; col < Spaces.GetLength(0) && col < Spaces.GetLength(1); col+=1) {
-                        var row = Spaces.GetLength(1) - 1 - col;
-                        if(lineOwner != Spaces[col,row].Mark) {
-                            isWinner = false;
-                            break;
-                        }
-                    }
-                    if(isWinner) {
-                        result.Add(new PlayerScore(new Player(lineOwner), 1));
-                    }
-                }
-            }
-            return new ScoreCard(result);
+            return result;
         }
     }
+
+    public ScoreCard ScoreSpace(
+        Player lineOwnerPlayer,
+        (sbyte Col, sbyte Row) pos
+    ) => ScoreSpace(lineOwnerPlayer, pos, (1, 0), HorizontalScoringLength)
+        + ScoreSpace(lineOwnerPlayer, pos, (0, 1), VerticalScoringLength)
+        + ScoreSpace(lineOwnerPlayer, pos, (1, 1), DiagonalScoringLength)
+        + ScoreSpace(lineOwnerPlayer, pos, (1, -1), DiagonalScoringLength);
+
+    /// <summary>
+    /// Score a given space for the given player and the given direction. Only
+    /// counts score for lines that *start* on the space, not ones that continue
+    /// on the space.
+    /// </summary>
+    /// <param name="lineOwnerPlayer"></param>
+    /// <param name="lineStartPos"></param>
+    /// <param name="delta"></param>
+    /// <param name="scoreLen"></param>
+    /// <returns></returns>
+    public ScoreCard ScoreSpace(
+        Player lineOwnerPlayer,
+        (sbyte Col, sbyte Row) lineStartPos,
+        (sbyte Col, sbyte Row) delta,
+        int scoreLen
+    ) {
+        var boardSize = ((sbyte)Spaces.GetLength(0), (sbyte)Spaces.GetLength(1));
+        (sbyte Col, sbyte Row) endPos = ExtrapolatePos(lineStartPos, delta, scoreLen - 1);
+
+        //end point is outside of board.
+        if (!IsSpaceInsideOfBoard(endPos, boardSize)) {
+            return ScoreCard.Empty;
+        }
+
+        (sbyte Col, sbyte Row) beforeStartPos = ExtrapolatePos(lineStartPos, delta, -1);
+        if (
+            IsSpaceInsideOfBoard(beforeStartPos, boardSize)
+            && Spaces[beforeStartPos.Col, beforeStartPos.Row].Mark == lineOwnerPlayer.Mark
+        ) {
+            // line already started before this space, return false to prevent double-counting.
+            return ScoreCard.Empty;
+        }
+
+        var lineLength = 0;
+        for (sbyte i = 0; IsSpaceInsideOfBoard(ExtrapolatePos(lineStartPos, delta, i), boardSize); i += 1) {
+            (sbyte Col, sbyte Row) curPos = ExtrapolatePos(lineStartPos, delta, i);
+
+            if (lineOwnerPlayer.Mark != Spaces[curPos.Col, curPos.Row].Mark) {
+                break;
+            } else {
+                lineLength = i+1;
+            }
+        }
+        var lineScore = lineLength / scoreLen;
+        return (lineScore > 0) 
+            ? new ScoreCard(lineOwnerPlayer, lineScore)
+            : ScoreCard.Empty;
+    }
+
+    private static (sbyte Col, sbyte Row) ExtrapolatePos((sbyte Col, sbyte Row) pos, (sbyte Col, sbyte Row) delta, int multiplier)
+        => ((sbyte)(pos.Col + delta.Col * multiplier), (sbyte)(pos.Row + delta.Row * multiplier));
+
+    private static bool IsSpaceInsideOfBoard((sbyte Col, sbyte Row) pos, (sbyte Col, sbyte Row) boardSize)
+        => (pos.Col < boardSize.Col)
+            && (pos.Row < boardSize.Row)
+            && (pos.Col >= 0)
+            && (pos.Row >= 0);
     #endregion
 }
