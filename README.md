@@ -117,12 +117,4 @@ Don't do that.
 
 ## Other Bugs
 
-Infinite.  I have no idea.  This was a one-evening hackathon.
-
-# TODO
-
-Zach's proposal was fleshed out a bit later, and has some things that aren't included in this game.
-
-## Scoring
-
-Zach's KTTT does not end when 3 in a row has been claimed.  Rather, a point is scored in that case.  The game *ends* when the board is full.
+Infinite.  I have no idea.  Half of this was a one-evening hackathon.  The other half was experimenting with a pretty weak local-hosted AI.
