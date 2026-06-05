@@ -1,9 +1,11 @@
 # Contributions
 
 PRs are welcome, but may get rejected if not in line with my plans for the
-project.  Start with an issue to discuss enhancement first.
+project.  See [TODO.md](TODO.md) for things that are ready to work on,
+[PLAN.md](PLAN.md) for longer-term plans that require discussion and
+consideration before starting work.
 
-# Coding Standards for Kriegspiel Tic Tac Toe
+# Coding Standards
 
 This document captures the coding style patterns used in this project.
 
@@ -153,7 +155,7 @@ This document captures the coding style patterns used in this project.
 - For computed properties, use expression bodied members:
 
   ```csharp
-  public IEnumerable<int> ActiveBoardIndices {get {
+  public IEnumerable<int> ActiveBoardIndices { get {
       for(int i = 0; i < Boards.Count; i+=1) {
           if(!Boards[i].IsDone) {
               yield return i; 
