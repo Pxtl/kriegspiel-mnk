@@ -231,8 +231,9 @@ internal static class GameLogic {
 
         var commandToPlayer = playerToCommand
             .ToOrderedDictionary(
-                pair => pair.Value,
-                pair => pair.Key);
+                p => p.Value,
+                p => p.Key,
+                StringComparer.OrdinalIgnoreCase);
 
         while (true) {
             if (playManager.PlayersAvailableForTurn.Count() == 1) {
