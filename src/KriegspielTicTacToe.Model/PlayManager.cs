@@ -8,8 +8,23 @@ using OneOf.Types;
 /// </summary>
 public abstract class PlayManager
 {
+    #region constructor
+    public PlayManager(IReadOnlyList<Player> players) {
+        Players = players;
+    }
+
+    #endregion
+
     #region members
-    public IReadOnlyList<Player> Players {get;init;} = new List<Player>();
+    public IReadOnlyList<Player> Players {
+        get; init {
+            // Validation: ToDictionary will throw ArgumentException on non-unique key.
+            _ = value
+                .ToDictionary(p => p.Mark, StringComparer.OrdinalIgnoreCase);
+
+            field = value;
+        }
+    } = new List<Player>();
 
     public int RoundIndex {get;set;}
 

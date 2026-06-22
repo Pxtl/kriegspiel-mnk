@@ -1,8 +1,35 @@
 namespace KriegspielTicTacToe.Model.Tests;
 
 public class PlayManagerTests {
+    #region unique player marks
     [Fact]
-    public void Constructor_WithBoardsCreatesProperState() {
+    public void RoundRobinPlayManagerConstructor_WithUniqueMarksIsAllowed() {
+        var expectedPlayers = new List<Player>() { new("X"), new("O") };
+        var actualManager = new RoundRobinPlayManager(expectedPlayers);
+        actualManager.Players.Should().BeEquivalentTo(expectedPlayers);
+    }
+
+    [Fact]
+    public void RoundRobinPlayManagerConstructor_WithNonUniqueMarksThrows() {
+        var expectedPlayers = new List<Player>() { new("X"), new("O"), new("X") };
+        var action = () => {
+            _ = new RoundRobinPlayManager(expectedPlayers);
+        };
+        action.Should().Throw<ArgumentException>();
+    }
+
+    [Fact]
+    public void RoundRobinPlayManagerConstructor_WithMarksSameButDifferentCaseThrows() {
+        var expectedPlayers = new List<Player>() { new("X"), new("O"), new("x") };
+        var action = () => {
+            _ = new RoundRobinPlayManager([new Player("X"), new Player("O")]);
+        };
+        action.Should().Throw<ArgumentException>();
+    }
+    #endregion
+
+    [Fact]
+    public void TicTacToeStateConstructor_WithBoardsCreatesProperState() {
         var state = new TicTacToeState(
             [new Player("X"), new Player("O")],
             [new BoardBuilder(3, 3), new BoardBuilder(3, 3)],
@@ -170,7 +197,7 @@ public class PlayManagerTests {
     }
 
     [Fact]
-    public void Constructor_3Players_FirstPlayerIs_A() {
+    public void TicTacToeStateConstructor_3Players_FirstPlayerIs_A() {
         var state = new TicTacToeState(
             [new Player("A"), new Player("B"), new Player("C")],
             [new BoardBuilder(3, 3)],
@@ -182,7 +209,7 @@ public class PlayManagerTests {
     }
 
     [Fact]
-    public void Constructor_RandomPlayer() {
+    public void TicTacToeStateConstructor_RandomPlayer() {
         var state = new TicTacToeState(
             [new Player("A"), new Player("B"), new Player("C")],
             [new BoardBuilder(3, 3)],
