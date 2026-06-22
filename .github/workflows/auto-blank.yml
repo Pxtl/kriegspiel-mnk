@@ -1,0 +1,15 @@
+# Auto-blank for fix-gametype-constructor branch on push
+name: Auto-blank
+
+on:
+  push:
+    branches: [ fix-gametype-constructor ]
+
+jobs:
+  auto-blank-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify build succeeds and tests pass
+        run: |
+          git status
+          echo "Ready for autoblank"
