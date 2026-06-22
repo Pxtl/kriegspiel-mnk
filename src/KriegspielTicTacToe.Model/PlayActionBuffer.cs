@@ -12,34 +12,19 @@ public class PlayActionBuffer {
     }
 
     public void ExecutePendingActions() {
-        if (Actions.Count == 0) return;
+        if (Actions.Count == 0) {
+            return;
+        }
+        if (GameState == null) {
+            throw new InvalidOperationException("Must be initialized first.");
+        }
                
-        foreach (var action in Actions) {
-            var board = GameState!.GetBoardByIndex(action.BoardIndex);
-            var space = board.Spaces[action.Col, action.Row];
-            
-            if (board.IsDone) {
-                continue;
+        foreach (var action in Actions) {            
+            if (Actions.Any(otherA => action.IsActionCollision(otherA))) {
+                action.DoActionCollision(GameState);
+            } else {
+                action.DoAction(GameState);
             }
-            
-            if (Actions.Any(otherA =>
-                otherA.BoardIndex == action.BoardIndex
-                && otherA.Row == action.Row
-                && otherA.Col == action.Col
-                && otherA.Player != action.Player))
-            {
-                space.Mark = "█";
-                foreach(var player in GameState.PlayManager.Players) {
-                    space.MakeKnownToPlayer(player);    
-                }
-                continue;
-            }
-
-            if (space.Mark == null) {
-                space.Mark = action.Player.Mark;
-            }
-            
-            space.MakeKnownToPlayer(action.Player);
         }
 
         Clear();

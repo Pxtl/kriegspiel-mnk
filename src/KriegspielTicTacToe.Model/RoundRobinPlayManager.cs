@@ -9,9 +9,7 @@ using OneOf.Types;
 public class RoundRobinPlayManager : PlayManager
 {
     #region constructors
-    public RoundRobinPlayManager(IReadOnlyList<Player> players) {
-        Players = players;
-    }
+    public RoundRobinPlayManager(IReadOnlyList<Player> players) : base(players) { }
     #endregion
 
     #region properties

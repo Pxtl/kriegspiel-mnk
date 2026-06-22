@@ -22,9 +22,10 @@ internal static class GameLogic {
             state = StateStorage.LoadState(sharedStateFilePath.FullName);
             Console.Out.WriteLine($"Loaded saved game!");
         } else {
-            state = new TicTacToeState(players, boardBuilders, 
-                isRandomPlayerOrder: isRandomPlayerOrder,
-                isSynchronousMode: isSynchronousMode
+            state = new TicTacToeState(
+                players,
+                new GameType(boardBuilders, IsSynchronousMode: isSynchronousMode), 
+                isRandomPlayerOrder: isRandomPlayerOrder
             );
             Console.Out.WriteLine("Starting new game!");
             StateStorage.SaveState(state, sharedStateFilePath.FullName);

@@ -9,6 +9,10 @@ public record Player {
             throw new ArgumentNullException("Mark must be provided", nameof(mark));
         } else if (mark.Length != 1) {
             throw new ArgumentException("Mark must be length 1", nameof(mark));
+        } else if (string.IsNullOrWhiteSpace(mark)) {
+            throw new ArgumentException("Mark must not be whitespace.", nameof(mark));
+        } else if (char.IsControl(mark[0])) {
+            throw new ArgumentException("Mark must not be a control char.", nameof(mark));
         }
         Mark = mark;
     }

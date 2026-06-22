@@ -5,44 +5,24 @@ namespace KriegspielTicTacToe.Model;
 
 public record TicTacToeState {
     public TicTacToeState(
-        char[] players,
-        IEnumerable<BoardBuilder> boardBuilders,
-        bool isRandomPlayerOrder,
-        bool isSynchronousMode
+        Player[] players,
+        GameType gameType,
+        bool isRandomPlayerOrder
     ) {
-        List<Player> playerList = players
-            .Select(c => new Player(c.ToString()))
-            .ToList();
-        playerList = playerList.ToList();
-        if(isRandomPlayerOrder) { 
-            Random.Shared.Shuffle((Player[])playerList.ToArray());
+        List<Player> playerList = players.ToList();
+        if(isRandomPlayerOrder) {
+            Random.Shared.Shuffle(playerList.ToArray());
         }
-        PlayManager = isSynchronousMode
+        PlayManager = gameType.IsSynchronousMode
             ? new SynchronizedPlayManager(playerList.AsReadOnly())
             : new RoundRobinPlayManager(playerList.AsReadOnly());
-        Boards = boardBuilders.Select(b => new Board(b)).ToList();
-        Initialize();
-    }
-
-    public TicTacToeState(
-        Player[] players,
-        IEnumerable<BoardBuilder> boardBuilders,
-        bool isRandomPlayerOrder,
-        bool isSynchronousMode
-    ) {
-        if(isRandomPlayerOrder) { 
-            Random.Shared.Shuffle((Player[])players); // explicit generic
-        }
-        PlayManager = (isSynchronousMode)
-            ? new SynchronizedPlayManager(players.AsReadOnly())
-            : new RoundRobinPlayManager(players.AsReadOnly());
-        Boards = boardBuilders.Select(b => new Board(b)).ToList();
+        Boards = gameType.BoardBuilders.Select(b => new Board(b)).ToList();
         Initialize();
     }
 
     public void Initialize() {
-        PlayManager.PlayActionBuffer = PlayActionBuffer;
         PlayActionBuffer.GameState = this;
+        PlayManager.PlayActionBuffer = PlayActionBuffer;
     }
 
     public PlayManager PlayManager {get;init;}
@@ -102,6 +82,10 @@ public record TicTacToeState {
         int row,
         Player player
     ) {
+        if (!PlayManager.CanTakeTurn(player)) {
+            throw new InvalidOperationException($"Player '{player}' cannot take their turn.");
+        }
+        
         var space = Boards[boardIndex].Spaces[col, row];
         if (space.IsKnownToPlayer(player)) {
             return new AlreadyPlayed();

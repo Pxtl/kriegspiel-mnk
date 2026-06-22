@@ -9,9 +9,7 @@ using OneOf.Types;
 public class SynchronizedPlayManager : PlayManager
 {
     #region constructors
-    public SynchronizedPlayManager(IReadOnlyList<Player> players) {
-        Players = players;
-    }
+    public SynchronizedPlayManager(IReadOnlyList<Player> players) : base(players) { }
     #endregion
 
     #region properties

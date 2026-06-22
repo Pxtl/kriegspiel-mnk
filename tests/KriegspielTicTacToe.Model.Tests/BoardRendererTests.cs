@@ -1,3 +1,5 @@
+using System;
+
 namespace KriegspielTicTacToe.Model.Tests;
 
 #pragma warning disable IDE0027 // Simplify nested expression
@@ -6,7 +8,10 @@ public class BoardRendererTests {
     [Fact]
     public void DrawBoards_3x3_ReturnsBlankBoardGridString() {
         var boardBuilder = new BoardBuilder(3, 3);
-        var state = new TicTacToeState(new[] { 'X', 'O' }, new[] { boardBuilder }, isRandomPlayerOrder: false, isSynchronousMode: false);
+        var state = new TicTacToeState(new[] { 'X', 'O' }.ToPlayersArray(),
+            new GameType { BoardBuilders = [ boardBuilder ], IsSynchronousMode = false },
+            isRandomPlayerOrder: false
+        );
         
         var currentPlayer = state.PlayManager.PlayersAvailableForTurn.First();
         
@@ -31,10 +36,13 @@ public class BoardRendererTests {
     public void DrawBoards_3x3WithOneMove_ReturnsBoardGridStringWithMove() {
         var boardBuilder = new BoardBuilder(3, 3);
         var state = new TicTacToeState(
-            new[] { 'X', 'O' },
-            new[] { boardBuilder },
-            isRandomPlayerOrder: false,
-            isSynchronousMode: false);
+            (new[] { 'X', 'O' }).ToPlayersArray(),
+            new GameType {
+                BoardBuilders = [ boardBuilder ],
+                IsSynchronousMode = false
+            },
+            isRandomPlayerOrder: false
+        );
         
         var currentPlayer = new Player("X");
         state.PlaySpace(0, 0, 0, currentPlayer);
@@ -62,10 +70,12 @@ public class BoardRendererTests {
         var boardBuilder3x3 = new BoardBuilder(3, 3);
         
         var state = new TicTacToeState(
-            new[] { 'X', 'O' },
-            new[] { boardBuilder3x3 },
-            isRandomPlayerOrder: false,
-            isSynchronousMode: false
+            (new[] { 'X', 'O' }).ToPlayersArray(),
+            new GameType {
+                BoardBuilders = [ boardBuilder3x3 ],
+                IsSynchronousMode = false
+            },
+            isRandomPlayerOrder: false
         );
 
         var currentPlayer = new Player("X");
@@ -93,10 +103,12 @@ public class BoardRendererTests {
         var boardBuilder3x3 = new BoardBuilder(3, 3);
         
         var state = new TicTacToeState(
-            new[] { 'X', 'O' },
-            new[] { boardBuilder3x3 },
-            isRandomPlayerOrder: false,
-            isSynchronousMode: false
+            (new[] { 'X', 'O' }).ToPlayersArray(),
+            new GameType {
+                BoardBuilders = [ boardBuilder3x3 ],
+                IsSynchronousMode = false
+            },
+            isRandomPlayerOrder: false
         );
 
         var currentPlayer = new Player("X");
@@ -129,7 +141,14 @@ public class BoardRendererTests {
     [Fact]
     public void DrawBoards_30x30_ReturnsBlankBoardGridString() {
         var boardBuilder = new BoardBuilder(30, 30);
-        var state = new TicTacToeState(new[] { 'X', 'O' }, new[] { boardBuilder }, isRandomPlayerOrder: false, isSynchronousMode: false);
+        var state = new TicTacToeState(
+            (new[] { 'X', 'O' }).ToPlayersArray(),
+            new GameType {
+                BoardBuilders = [ boardBuilder ],
+                IsSynchronousMode = false
+            },
+            isRandomPlayerOrder: false
+        );
         
         var currentPlayer = state.PlayManager.PlayersAvailableForTurn.First();
         
@@ -207,7 +226,14 @@ public class BoardRendererTests {
     [Fact]
     public void DrawBoards_30x30WithActiveBoard_ReturnBoardsWithSpaceCodesGridString() {
         var boardBuilder = new BoardBuilder(30, 30);
-        var state = new TicTacToeState(new[] { 'X', 'O' }, new[] { boardBuilder }, isRandomPlayerOrder: false, isSynchronousMode: false);
+        var state = new TicTacToeState(
+            (new[] { 'X', 'O' }).ToPlayersArray(),
+            new GameType {
+                BoardBuilders = [ boardBuilder ],
+                IsSynchronousMode = false
+            },
+            isRandomPlayerOrder: false
+        );
         
         var currentPlayer = state.PlayManager.PlayersAvailableForTurn.First();
         
@@ -287,10 +313,12 @@ public class BoardRendererTests {
         var boardBuilder3x3 = new BoardBuilder(3, 3);
         
         var state = new TicTacToeState(
-            new[] { 'X', 'O' },
-            new[] { boardBuilder3x3, boardBuilder3x3, boardBuilder3x3 },
-            isRandomPlayerOrder: false,
-            isSynchronousMode: false
+            (new[] { 'X', 'O' }).ToPlayersArray(),
+            new GameType {
+                BoardBuilders = [ boardBuilder3x3, boardBuilder3x3, boardBuilder3x3 ],
+                IsSynchronousMode = false
+            },
+            isRandomPlayerOrder: false
         );
 
         var currentPlayer = new Player("X");
@@ -324,10 +352,12 @@ public class BoardRendererTests {
         var boardBuilder3x3 = new BoardBuilder(3, 3);
         
         var state = new TicTacToeState(
-            new[] { 'X', 'O' },
-            new[] { boardBuilder3x3, boardBuilder3x3, boardBuilder3x3 },
-            isRandomPlayerOrder: false,
-            isSynchronousMode: false
+            (new[] { 'X', 'O' }).ToPlayersArray(),
+            new GameType {
+                BoardBuilders = [ boardBuilder3x3, boardBuilder3x3, boardBuilder3x3 ],
+                IsSynchronousMode = false
+            },
+            isRandomPlayerOrder: false
         );
 
         var currentPlayer = new Player("X");
@@ -369,10 +399,12 @@ public class BoardRendererTests {
         var boardBuilder3x3 = new BoardBuilder(3, 3);
         
         var state = new TicTacToeState(
-            new[] { 'X', 'O' },
-            new[] { boardBuilder3x3, boardBuilder3x3, boardBuilder3x3 },
-            isRandomPlayerOrder: false,
-            isSynchronousMode: false
+            (new[] { 'X', 'O' }).ToPlayersArray(),
+            new GameType {
+                BoardBuilders = [ boardBuilder3x3, boardBuilder3x3, boardBuilder3x3 ],
+                IsSynchronousMode = false
+            },
+            isRandomPlayerOrder: false
         );
 
         var currentPlayer = new Player("X");
