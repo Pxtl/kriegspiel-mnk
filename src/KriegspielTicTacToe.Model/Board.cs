@@ -7,39 +7,14 @@ using OneOf;
 /// <summary>
 /// JSON-serializable model object for a single tic-tac-toe board.
 /// </summary>
-public record Board {
+public abstract record Board {
     #region constructors
     public Board() {}
-    public Board(BoardBuilder builder) : this(builder.Width, builder.Height, builder.ScoringLength) {}
-    public Board(sbyte width, sbyte height) : this(width, height, null) {}
-    public Board(sbyte width, sbyte height, sbyte? scoringLength = null, bool isBoardDoneWhenScored = false) {
-        Spaces = new Space[width, height];
-        for (var col = 0; col < Spaces.GetLength(0); col+=1) {
-            for (var row = 0; row < Spaces.GetLength(1); row+=1) {
-                Spaces[col,row] = new Space();
-            }
-        }
-
-        if (scoringLength.HasValue) {
-            HorizontalScoringLength = scoringLength.Value;
-            VerticalScoringLength = scoringLength.Value;
-            DiagonalScoringLength = scoringLength.Value;
-        } else {
-            HorizontalScoringLength = width;
-            VerticalScoringLength = height;
-            DiagonalScoringLength = Math.Min(width, height);
-        }
-
-        IsBoardDoneWhenScored = isBoardDoneWhenScored;
-    }
+    
     #endregion
 
     #region main data properties
     public Space[,] Spaces {get;set;} = new Space[1,1]{{new Space()}}; //default value is dummy board, never use.
-    public sbyte HorizontalScoringLength {get;init;}
-    public sbyte VerticalScoringLength {get;init;}
-    public sbyte DiagonalScoringLength {get;init;}
-    public bool IsBoardDoneWhenScored {get;init;}
     #endregion
 
     #region Methods
@@ -95,6 +70,10 @@ public record Board {
             .Select(s => GetSpaceNameAsInt(s.Col, s.Row).ToString());
     #endregion
 
+    #region abstract and virtual properties
+    public abstract ScoreCard ScoreCard { get; }
+    #endregion
+
     #region helper properties
     [JsonIgnore()]
     public int ColumnCount
@@ -127,89 +106,10 @@ public record Board {
         => BoardAsEnumerable().All(s => s.Space.Mark != null);
 
     [JsonIgnore()]
-    public bool IsDone
-        => IsFull 
-        || (IsBoardDoneWhenScored && ScoreCard.PlayerScores.Any(s => s.Score > 0));
+    public virtual bool IsDone
+        => IsFull;
 
-    [JsonIgnore()]
-    public ScoreCard ScoreCard {
-        get {
-            var result = new ScoreCard();
-            var width = Spaces.GetLength(0);
-            var height = Spaces.GetLength(1);
-            
-            foreach (var spaceEnumerator in BoardAsEnumerable()) {
-                string? lineOwnerMark = spaceEnumerator.Space.Mark;
-                if(lineOwnerMark != null) {
-                    var lineOwnerPlayer = new Player(lineOwnerMark);
-                    result += ScoreSpace(lineOwnerPlayer, (spaceEnumerator.Col, spaceEnumerator.Row));
-                }
-            }
-            return result;
-        }
-    }
-
-    public ScoreCard ScoreSpace(
-        Player lineOwnerPlayer,
-        (sbyte Col, sbyte Row) pos
-    ) => ScoreSpace(lineOwnerPlayer, pos, (1, 0), HorizontalScoringLength)
-        + ScoreSpace(lineOwnerPlayer, pos, (0, 1), VerticalScoringLength)
-        + ScoreSpace(lineOwnerPlayer, pos, (1, 1), DiagonalScoringLength)
-        + ScoreSpace(lineOwnerPlayer, pos, (1, -1), DiagonalScoringLength);
-
-    /// <summary>
-    /// Score a given space for the given player and the given direction. Only
-    /// counts score for lines that *start* on the space, not ones that continue
-    /// on the space.
-    /// </summary>
-    /// <param name="lineOwnerPlayer"></param>
-    /// <param name="lineStartPos"></param>
-    /// <param name="delta"></param>
-    /// <param name="scoreLen"></param>
-    /// <returns></returns>
-    public ScoreCard ScoreSpace(
-        Player lineOwnerPlayer,
-        (sbyte Col, sbyte Row) lineStartPos,
-        (sbyte Col, sbyte Row) delta,
-        int scoreLen
-    ) {
-        var boardSize = ((sbyte)Spaces.GetLength(0), (sbyte)Spaces.GetLength(1));
-        (sbyte Col, sbyte Row) endPos = ExtrapolatePos(lineStartPos, delta, scoreLen - 1);
-
-        //end point is outside of board.
-        if (!IsSpaceInsideOfBoard(endPos, boardSize)) {
-            return ScoreCard.Empty;
-        }
-
-        (sbyte Col, sbyte Row) beforeStartPos = ExtrapolatePos(lineStartPos, delta, -1);
-        if (
-            IsSpaceInsideOfBoard(beforeStartPos, boardSize)
-            && Spaces[beforeStartPos.Col, beforeStartPos.Row].Mark == lineOwnerPlayer.Mark
-        ) {
-            // line already started before this space, return false to prevent double-counting.
-            return ScoreCard.Empty;
-        }
-
-        var lineLength = 0;
-        for (sbyte i = 0; IsSpaceInsideOfBoard(ExtrapolatePos(lineStartPos, delta, i), boardSize); i += 1) {
-            (sbyte Col, sbyte Row) curPos = ExtrapolatePos(lineStartPos, delta, i);
-
-            if (lineOwnerPlayer.Mark != Spaces[curPos.Col, curPos.Row].Mark) {
-                break;
-            } else {
-                lineLength = i+1;
-            }
-        }
-        var lineScore = lineLength / scoreLen;
-        return (lineScore > 0) 
-            ? new ScoreCard(lineOwnerPlayer, lineScore)
-            : ScoreCard.Empty;
-    }
-
-    private static (sbyte Col, sbyte Row) ExtrapolatePos((sbyte Col, sbyte Row) pos, (sbyte Col, sbyte Row) delta, int multiplier)
-        => ((sbyte)(pos.Col + delta.Col * multiplier), (sbyte)(pos.Row + delta.Row * multiplier));
-
-    private static bool IsSpaceInsideOfBoard((sbyte Col, sbyte Row) pos, (sbyte Col, sbyte Row) boardSize)
+    public static bool IsSpaceInsideOfBoard((sbyte Col, sbyte Row) pos, (sbyte Col, sbyte Row) boardSize)
         => (pos.Col < boardSize.Col)
             && (pos.Row < boardSize.Row)
             && (pos.Col >= 0)

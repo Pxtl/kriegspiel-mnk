@@ -1,5 +1,3 @@
-using System;
-
 namespace KriegspielTicTacToe.Model.Tests;
 
 #pragma warning disable IDE0027 // Simplify nested expression
@@ -7,9 +5,9 @@ public class BoardRendererTests {
     
     [Fact]
     public void DrawBoards_3x3_ReturnsBlankBoardGridString() {
-        var boardBuilder = new BoardBuilder(3, 3);
+        var boardBuilder = new TicTacToeBoardBuilder(3, 3);
         var state = new TicTacToeState(new[] { 'X', 'O' }.ToPlayersArray(),
-            new GameType { BoardBuilders = [ boardBuilder ], IsSynchronousMode = false },
+            new TicTacToeGameType([ boardBuilder ], isSynchronousMode: false),
             isRandomPlayerOrder: false
         );
         
@@ -34,13 +32,10 @@ public class BoardRendererTests {
 
     [Fact]
     public void DrawBoards_3x3WithOneMove_ReturnsBoardGridStringWithMove() {
-        var boardBuilder = new BoardBuilder(3, 3);
+        var boardBuilder = new TicTacToeBoardBuilder(3, 3);
         var state = new TicTacToeState(
             (new[] { 'X', 'O' }).ToPlayersArray(),
-            new GameType {
-                BoardBuilders = [ boardBuilder ],
-                IsSynchronousMode = false
-            },
+            new TicTacToeGameType([ boardBuilder ], isSynchronousMode: false),
             isRandomPlayerOrder: false
         );
         
@@ -67,14 +62,11 @@ public class BoardRendererTests {
 
     [Fact]
     public void DrawBoards_3x3WithActiveBoard_ReturnBoardsWithSpaceCodesGridString() {
-        var boardBuilder3x3 = new BoardBuilder(3, 3);
+        var boardBuilder3x3 = new TicTacToeBoardBuilder(3, 3);
         
         var state = new TicTacToeState(
             (new[] { 'X', 'O' }).ToPlayersArray(),
-            new GameType {
-                BoardBuilders = [ boardBuilder3x3 ],
-                IsSynchronousMode = false
-            },
+            new TicTacToeGameType([ boardBuilder3x3 ], isSynchronousMode: false),
             isRandomPlayerOrder: false
         );
 
@@ -100,14 +92,11 @@ public class BoardRendererTests {
 
     [Fact]
     public void DrawBoards_3x3WithActiveBoardAndOneMove_ReturnBoardsWithSpaceCodesGridString() {
-        var boardBuilder3x3 = new BoardBuilder(3, 3);
+        var boardBuilder3x3 = new TicTacToeBoardBuilder(3, 3);
         
         var state = new TicTacToeState(
             (new[] { 'X', 'O' }).ToPlayersArray(),
-            new GameType {
-                BoardBuilders = [ boardBuilder3x3 ],
-                IsSynchronousMode = false
-            },
+            new TicTacToeGameType([ boardBuilder3x3 ], isSynchronousMode: false),
             isRandomPlayerOrder: false
         );
 
@@ -140,13 +129,10 @@ public class BoardRendererTests {
 
     [Fact]
     public void DrawBoards_30x30_ReturnsBlankBoardGridString() {
-        var boardBuilder = new BoardBuilder(30, 30);
+        var boardBuilder = new TicTacToeBoardBuilder(30, 30);
         var state = new TicTacToeState(
             (new[] { 'X', 'O' }).ToPlayersArray(),
-            new GameType {
-                BoardBuilders = [ boardBuilder ],
-                IsSynchronousMode = false
-            },
+            new TicTacToeGameType([ boardBuilder ], isSynchronousMode: false),
             isRandomPlayerOrder: false
         );
         
@@ -225,13 +211,10 @@ public class BoardRendererTests {
 
     [Fact]
     public void DrawBoards_30x30WithActiveBoard_ReturnBoardsWithSpaceCodesGridString() {
-        var boardBuilder = new BoardBuilder(30, 30);
+        var boardBuilder = new TicTacToeBoardBuilder(30, 30);
         var state = new TicTacToeState(
             (new[] { 'X', 'O' }).ToPlayersArray(),
-            new GameType {
-                BoardBuilders = [ boardBuilder ],
-                IsSynchronousMode = false
-            },
+            new TicTacToeGameType([ boardBuilder ], isSynchronousMode: false),
             isRandomPlayerOrder: false
         );
         
@@ -310,14 +293,11 @@ public class BoardRendererTests {
 
     [Fact]
     public void DrawBoards_3x3MultipleBoardsWithWrapping_ReturnWrappedBoardGridString() {
-        var boardBuilder3x3 = new BoardBuilder(3, 3);
+        var boardBuilder3x3 = new TicTacToeBoardBuilder(3, 3);
         
         var state = new TicTacToeState(
             (new[] { 'X', 'O' }).ToPlayersArray(),
-            new GameType {
-                BoardBuilders = [ boardBuilder3x3, boardBuilder3x3, boardBuilder3x3 ],
-                IsSynchronousMode = false
-            },
+            new TicTacToeGameType([ boardBuilder3x3, boardBuilder3x3, boardBuilder3x3 ], isSynchronousMode: false),
             isRandomPlayerOrder: false
         );
 
@@ -349,14 +329,11 @@ public class BoardRendererTests {
 
     [Fact]
     public void DrawBoards_3x3MultipleBoardsWithNarrowWrapping_ReturnWrappedBoardGridString() {
-        var boardBuilder3x3 = new BoardBuilder(3, 3);
+        var boardBuilder3x3 = new TicTacToeBoardBuilder(3, 3);
         
         var state = new TicTacToeState(
             (new[] { 'X', 'O' }).ToPlayersArray(),
-            new GameType {
-                BoardBuilders = [ boardBuilder3x3, boardBuilder3x3, boardBuilder3x3 ],
-                IsSynchronousMode = false
-            },
+            new TicTacToeGameType([ boardBuilder3x3, boardBuilder3x3, boardBuilder3x3 ], isSynchronousMode: false),
             isRandomPlayerOrder: false
         );
 
@@ -396,14 +373,11 @@ public class BoardRendererTests {
 
     [Fact]
     public void DrawBoards_3x3MultipleBoardsWithActiveBoard_ReturnBoardsWithSpaceCodesGridString() {
-        var boardBuilder3x3 = new BoardBuilder(3, 3);
+        var boardBuilder3x3 = new TicTacToeBoardBuilder(3, 3);
         
         var state = new TicTacToeState(
             (new[] { 'X', 'O' }).ToPlayersArray(),
-            new GameType {
-                BoardBuilders = [ boardBuilder3x3, boardBuilder3x3, boardBuilder3x3 ],
-                IsSynchronousMode = false
-            },
+            new TicTacToeGameType([ boardBuilder3x3, boardBuilder3x3, boardBuilder3x3 ], isSynchronousMode: false),
             isRandomPlayerOrder: false
         );
 

@@ -1,12 +1,14 @@
-namespace KriegspielTicTacToe.Model;
+using System.Text.Json.Serialization;
+
+namespace KriegspielTicTacToe.Model.TicTacToe;
 
 public record TicTacToePlayAction(
     int BoardIndex,
     int Col,
     int Row,
     Player Player
-) {
-	internal void DoActionCollision(TicTacToeState gameState) {
+) : PlayAction<TicTacToePlayAction, TicTacToeState> {
+	public override void DoActionCollision(TicTacToeState gameState) {
         if (GetBoard(gameState).IsDone) {
             return;
         }
@@ -17,19 +19,19 @@ public record TicTacToePlayAction(
         }
 	}
 
-    internal Board GetBoard(TicTacToeState gameState)
+    protected Board GetBoard(TicTacToeState gameState)
         => gameState.GetBoardByIndex(BoardIndex);
 
-    internal Space GetSpace(TicTacToeState gameState)
+    protected Space GetSpace(TicTacToeState gameState)
         => GetBoard(gameState).Spaces[Col, Row];
 
-	public bool IsActionCollision(TicTacToePlayAction otherAction)
+	public override bool IsActionCollision(TicTacToePlayAction otherAction)
     => BoardIndex == otherAction.BoardIndex
         && Col == otherAction.Col
         && Row == otherAction.Row
         && Player != otherAction.Player;
 
-	public void DoAction(TicTacToeState gameState)
+	public override void DoAction(TicTacToeState gameState)
 	{
 		if (GetBoard(gameState).IsDone) {
             return;

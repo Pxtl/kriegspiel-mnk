@@ -1,33 +1,14 @@
 using OneOf;
 using OneOf.Types;
 
-namespace KriegspielTicTacToe.Model;
+namespace KriegspielTicTacToe.Model.TicTacToe;
 
-public record TicTacToeState {
+public record TicTacToeState : GameState<TicTacToeState, TicTacToeGameType, TicTacToeBoard, TicTacToePlayAction> {
     public TicTacToeState(
         Player[] players,
-        GameType gameType,
+        TicTacToeGameType gameType,
         bool isRandomPlayerOrder
-    ) {
-        List<Player> playerList = players.ToList();
-        if(isRandomPlayerOrder) {
-            Random.Shared.Shuffle(playerList.ToArray());
-        }
-        PlayManager = gameType.IsSynchronousMode
-            ? new SynchronizedPlayManager(playerList.AsReadOnly())
-            : new RoundRobinPlayManager(playerList.AsReadOnly());
-        Boards = gameType.BoardBuilders.Select(b => new Board(b)).ToList();
-        Initialize();
-    }
-
-    public void Initialize() {
-        PlayActionBuffer.GameState = this;
-        PlayManager.PlayActionBuffer = PlayActionBuffer;
-    }
-
-    public PlayManager PlayManager {get;init;}
-    public IReadOnlyList<Board> Boards {get;init;}
-    public PlayActionBuffer PlayActionBuffer {get;init;} = new PlayActionBuffer();
+    ) : base(players, gameType, isRandomPlayerOrder) { }
 
     public OneOf<NotFound, Result<int>> GetBoardIndexByName(string boardName) {
         var boardNameAsInt = int.Parse(boardName);

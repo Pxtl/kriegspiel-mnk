@@ -5,10 +5,7 @@ public class TicTacToeStateTests {
     public void Constructor_EmptyBoards() {
         var state = new TicTacToeState(
             (new[] { 'X', 'O' }).ToPlayersArray(),
-            new GameType {
-                BoardBuilders = Array.Empty<BoardBuilder>(),
-                IsSynchronousMode = false
-            },
+            new TicTacToeGameType(Array.Empty<TicTacToeBoardBuilder>(), isSynchronousMode: false),
             isRandomPlayerOrder: false
         );
         state.Boards.Should().BeEmpty();

@@ -13,4 +13,8 @@
     <PackageReference Include="Sundew.Base.Collections.Immutable" Version="16.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Using Include="Newtonsoft.Json" />
+  </ItemGroup>
+
 </Project>

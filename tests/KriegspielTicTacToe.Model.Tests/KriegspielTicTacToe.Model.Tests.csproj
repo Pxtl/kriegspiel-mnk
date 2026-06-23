@@ -16,6 +16,8 @@
   <ItemGroup>
     <Using Include="Xunit" />
     <Using Include="KriegspielTicTacToe" />
+    <Using Include="KriegspielTicTacToe.Model" />
+    <Using Include="KriegspielTicTacToe.Model.TicTacToe" />
     <Using Include="FluentAssertions" />
   </ItemGroup>
 

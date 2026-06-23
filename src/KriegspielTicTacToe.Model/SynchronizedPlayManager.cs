@@ -6,8 +6,8 @@ using OneOf.Types;
 /// <summary>
 /// PlayManager for synchronized mode - player moves are buffered until round end.
 /// </summary>
-public class SynchronizedPlayManager : PlayManager
-{
+public class SynchronizedPlayManager 
+: PlayManager {
     #region constructors
     public SynchronizedPlayManager(IReadOnlyList<Player> players) : base(players) { }
     #endregion
@@ -34,4 +34,11 @@ public class SynchronizedPlayManager : PlayManager
     public override IEnumerable<Player> PlayersAvailableForTurn
         => ActivePlayers.Except(PlayedPlayersSet);
     #endregion
+}
+
+public record SynchronizedPlayManagerFactory
+: PlayManagerFactory {
+    public static SynchronizedPlayManagerFactory Instance {get;} = new SynchronizedPlayManagerFactory();
+	public override PlayManager Create(IReadOnlyList<Player> players) 
+		=> new SynchronizedPlayManager(players);
 }

@@ -32,10 +32,7 @@ public class PlayManagerTests {
     public void TicTacToeStateConstructor_WithBoardsCreatesProperState() {
         var state = new TicTacToeState(
             [new Player("X"), new Player("O")],
-            new GameType {
-                BoardBuilders = [new BoardBuilder(3, 3), new BoardBuilder(3, 3)],
-                IsSynchronousMode = false
-            },
+            new TicTacToeGameType([new TicTacToeBoardBuilder(3, 3), new TicTacToeBoardBuilder(3, 3)], isSynchronousMode: false),
             isRandomPlayerOrder: false
         );
         state.Boards.Count.Should().Be(2);
@@ -49,7 +46,7 @@ public class PlayManagerTests {
     public void Round_RoundIndexStartsAtZero() {
         var state = new TicTacToeState(
             [new Player("X"), new Player("O")],
-            new GameType { BoardBuilders = [new BoardBuilder(3, 3)], IsSynchronousMode = false },
+            new TicTacToeGameType([new TicTacToeBoardBuilder(3, 3)], isSynchronousMode: false),
             isRandomPlayerOrder: false
         );
         state.PlayManager.RoundIndex.Should().Be(0);
@@ -59,7 +56,7 @@ public class PlayManagerTests {
     public void EndTurn_AdvancesTurn() {
         var state = new TicTacToeState(
             [new Player("X"), new Player("O")],
-            new GameType { BoardBuilders = [new BoardBuilder(3, 3)], IsSynchronousMode = false },
+            new TicTacToeGameType([new TicTacToeBoardBuilder(3, 3)], isSynchronousMode: false),
             isRandomPlayerOrder: false
         );
 
@@ -71,7 +68,7 @@ public class PlayManagerTests {
     public void EndTurn_EndRound_TracksRoundIndex() {
         var state = new TicTacToeState(
             [new Player("X"), new Player("O")],
-            new GameType { BoardBuilders = [new BoardBuilder(3, 3)], IsSynchronousMode = false },
+            new TicTacToeGameType([new TicTacToeBoardBuilder(3, 3)], isSynchronousMode: false),
             isRandomPlayerOrder: false
         );
 
@@ -88,7 +85,7 @@ public class PlayManagerTests {
     public void RoundComplete_OnePlayerResigned() {
         var state = new TicTacToeState(
             [new Player("X"), new Player("O")],
-            new GameType { BoardBuilders = [new BoardBuilder(3, 3)], IsSynchronousMode = false },
+            new TicTacToeGameType([new TicTacToeBoardBuilder(3, 3)], isSynchronousMode: false),
             isRandomPlayerOrder: false
         );
 
@@ -104,7 +101,7 @@ public class PlayManagerTests {
     public void RoundComplete_TwoPlayers() {
         var state = new TicTacToeState(
             [new Player("A"), new Player("B")],
-            new GameType { BoardBuilders = [new BoardBuilder(3, 3)], IsSynchronousMode = true },
+            new TicTacToeGameType([new TicTacToeBoardBuilder(3, 3)], isSynchronousMode: true),
             isRandomPlayerOrder: false
         );
 
@@ -118,7 +115,7 @@ public class PlayManagerTests {
     public void RoundComplete_ThreePlayers() {
         var state = new TicTacToeState(
             [new Player("A"), new Player("B"), new Player("C")],
-            new GameType { BoardBuilders = [new BoardBuilder(3, 3)], IsSynchronousMode = true },
+            new TicTacToeGameType([new TicTacToeBoardBuilder(3, 3)], isSynchronousMode: true),
             isRandomPlayerOrder: false
         );
 
@@ -135,7 +132,7 @@ public class PlayManagerTests {
     public void ResignPlayerInRoundRobinMode_OnlyNextPlayerCanTakeTurn() {
         var state = new TicTacToeState(
             [new Player("A"), new Player("B"), new Player("C")],
-            new GameType { BoardBuilders = [new BoardBuilder(3, 3)], IsSynchronousMode = false },
+            new TicTacToeGameType([new TicTacToeBoardBuilder(3, 3)], isSynchronousMode: false),
             isRandomPlayerOrder: false
         );
 
@@ -151,7 +148,7 @@ public class PlayManagerTests {
     public void ActivePlayers_ExcludesResignedPlayers() {
         var state = new TicTacToeState(
             [new Player("A"), new Player("B"), new Player("C")],
-            new GameType { BoardBuilders = [new BoardBuilder(3, 3)], IsSynchronousMode = false },
+            new TicTacToeGameType([new TicTacToeBoardBuilder(3, 3)], isSynchronousMode: false),
             isRandomPlayerOrder: false
         );
 
@@ -164,7 +161,7 @@ public class PlayManagerTests {
     public void ResignPlayer_AddsToResignedPlayersSet() {
         var state = new TicTacToeState(
             [new Player("A"), new Player("B"), new Player("C")],
-            new GameType { BoardBuilders = [new BoardBuilder(3, 3)], IsSynchronousMode = false },
+            new TicTacToeGameType([new TicTacToeBoardBuilder(3, 3)], isSynchronousMode: false),
             isRandomPlayerOrder: false
         );
 
@@ -176,7 +173,7 @@ public class PlayManagerTests {
     public void ResignPlayer_SkipsResignedTurn() {
         var state = new TicTacToeState(
             [new Player("A"), new Player("B"), new Player("C")],
-            new GameType { BoardBuilders = [new BoardBuilder(3, 3)], IsSynchronousMode = false },
+            new TicTacToeGameType([new TicTacToeBoardBuilder(3, 3)], isSynchronousMode: false),
             isRandomPlayerOrder: false
         );
 
@@ -192,7 +189,7 @@ public class PlayManagerTests {
     public void TicTacToeStateConstructor_3Players_FirstPlayerIs_A() {
         var state = new TicTacToeState(
             [new Player("A"), new Player("B"), new Player("C")],
-            new GameType { BoardBuilders = [new BoardBuilder(3, 3)], IsSynchronousMode = false },
+            new TicTacToeGameType([new TicTacToeBoardBuilder(3, 3)], isSynchronousMode: false),
             isRandomPlayerOrder: false
         );
 
@@ -203,7 +200,7 @@ public class PlayManagerTests {
     public void TicTacToeStateConstructor_RandomPlayer() {
         var state = new TicTacToeState(
             [new Player("A"), new Player("B"), new Player("C")],
-            new GameType { BoardBuilders = [new BoardBuilder(3, 3)], IsSynchronousMode = false },
+            new TicTacToeGameType([new TicTacToeBoardBuilder(3, 3)], isSynchronousMode: false),
             isRandomPlayerOrder: true
         );
         var firstPlayer = state.PlayManager.ActivePlayers.First();
@@ -215,7 +212,7 @@ public class PlayManagerTests {
     public void CanTakeTurn_AllAvailablePlayersSynchronousMode() {
         var state = new TicTacToeState(
             [new Player("A"), new Player("B"), new Player("C")],
-            new GameType { BoardBuilders = [new BoardBuilder(3, 3)], IsSynchronousMode = true },
+            new TicTacToeGameType([new TicTacToeBoardBuilder(3, 3)], isSynchronousMode: true),
             isRandomPlayerOrder: false
         );
 

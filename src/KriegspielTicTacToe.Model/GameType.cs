@@ -1,9 +1,12 @@
 namespace KriegspielTicTacToe.Model;
 
-/// <summary>
-/// Represents a game type configuration including board builders and play mode settings.
-/// </summary>
-public record struct GameType(
-    IEnumerable<BoardBuilder> BoardBuilders,
-    bool IsSynchronousMode
-);
+public interface IGameType {
+    public PlayManagerFactory PlayManagerFactory { get;}
+}
+
+public abstract record GameType<TBoard>() : IGameType
+where TBoard : Board {
+	public PlayManagerFactory PlayManagerFactory { get; init; } = RoundRobinPlayManagerFactory.Instance;
+
+	public abstract IReadOnlyList<TBoard> ConstructBoards();
+}

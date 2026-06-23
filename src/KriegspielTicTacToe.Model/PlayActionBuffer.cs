@@ -1,9 +1,15 @@
 namespace KriegspielTicTacToe.Model;
 
-public class PlayActionBuffer {
-    public List<TicTacToePlayAction> Actions {get;private set;} = [];
+public interface IPlayActionBuffer {
+    void ExecutePendingActions();
+}
 
-    public void Add(TicTacToePlayAction action) {
+public class PlayActionBuffer<TPlayAction, TState> : IPlayActionBuffer
+where TPlayAction : PlayAction<TPlayAction, TState>
+where TState : IGameState {
+    public List<TPlayAction> Actions {get;private set;} = [];
+
+    public void Add(TPlayAction action) {
         Actions.Add(action);
     }
 
@@ -31,5 +37,5 @@ public class PlayActionBuffer {
     }
 
     [JsonIgnore()]
-    public TicTacToeState? GameState { get; internal set; }
+    public TState? GameState { get; internal set; }
 }

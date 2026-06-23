@@ -3,6 +3,10 @@ namespace KriegspielTicTacToe.Model;
 using OneOf;
 using OneOf.Types;
 
+public abstract record PlayManagerFactory() {
+    public abstract PlayManager Create(IReadOnlyList<Player> players);
+}
+
 /// <summary>
 /// Base class containing shared play management logic for retirement and turn tracking.
 /// </summary>
@@ -116,6 +120,6 @@ public abstract class PlayManager
     /// post-constructor so must be nullable.
     /// </summary>
     [JsonIgnore()]
-    public PlayActionBuffer? PlayActionBuffer { get; internal set; }
+    public IPlayActionBuffer? PlayActionBuffer { get; internal set; }
     #endregion
 }

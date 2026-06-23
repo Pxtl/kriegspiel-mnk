@@ -1,7 +1,6 @@
 namespace KriegspielTicTacToe;
 
 using System.Text.RegularExpressions;
-using KriegspielTicTacToe.Model;
 
 /// <summary>
 /// Static class for functions that calculate a typeable key for a given thing.

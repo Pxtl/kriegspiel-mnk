@@ -1,6 +1,5 @@
 namespace KriegspielTicTacToe;
 
-using KriegspielTicTacToe.Model;
 using Newtonsoft.Json;
 
 /// <summary>

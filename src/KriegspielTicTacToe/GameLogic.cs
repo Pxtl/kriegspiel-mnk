@@ -1,6 +1,5 @@
 namespace KriegspielTicTacToe;
 
-using KriegspielTicTacToe.Model;
 using OneOf;
 using OneOf.Types;
 
@@ -12,7 +11,7 @@ internal static class GameLogic {
         FileInfo sharedStateFilePath,
         bool doForceNewGame,
         Player[] players,
-        IEnumerable<BoardBuilder> boardBuilders,
+        IEnumerable<TicTacToeBoardBuilder> boardBuilders,
         OneOf<Player, LocalHotseatGame> joinAsPlayer,
         bool isRandomPlayerOrder,
         bool isSynchronousMode
@@ -24,7 +23,7 @@ internal static class GameLogic {
         } else {
             state = new TicTacToeState(
                 players,
-                new GameType(boardBuilders, IsSynchronousMode: isSynchronousMode), 
+                new TicTacToeGameType(boardBuilders, isSynchronousMode: isSynchronousMode), 
                 isRandomPlayerOrder: isRandomPlayerOrder
             );
             Console.Out.WriteLine("Starting new game!");
