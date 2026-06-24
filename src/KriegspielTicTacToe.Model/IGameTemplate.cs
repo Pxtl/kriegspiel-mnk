@@ -1,5 +1,5 @@
 namespace KriegspielTicTacToe.Model;
 
-public interface IGameType {
+public interface IGameTemplate {
     public PlayManagerFactory PlayManagerFactory { get;}
 }

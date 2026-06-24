@@ -8,28 +8,27 @@ using System.Text;
 /// </summary>
 public static class BoardRenderer {
     public static string DrawBoards(
-        TicTacToeState state,
-        Player player,
+        TicTacToeView gameView,
         int? activeBoardIndex,
         int maxWidth = int.MaxValue
     ) {
-        bool doShowBoardCode = state.Boards.Count > 1;
-        var maxRowCount = state.Boards.Max(b => b.RowCount);
+        bool doShowBoardCode = gameView.Boards.Count > 1;
+        var maxRowCount = gameView.Boards.Max(b => b.RowCount);
         var sb = new StringBuilder();
 
         var nextDrawnBoardIndex = 0;
-        var boardWidth = GetBoardWidth(state.Boards[nextDrawnBoardIndex]);
+        var boardWidth = GetBoardWidth(gameView.Boards[nextDrawnBoardIndex]);
        
-        while (nextDrawnBoardIndex < state.Boards.Count) {
-            DrawBorderRow(state, nextDrawnBoardIndex, "┌", "┬", "┐", "───", doShowBoardCode, maxWidth, sb);
+        while (nextDrawnBoardIndex < gameView.Boards.Count) {
+            DrawBorderRow(gameView, nextDrawnBoardIndex, "┌", "┬", "┐", "───", doShowBoardCode, maxWidth, sb);
             
             for(var row = 0; row < maxRowCount; row += 1) {
                 if(row > 0) {
-                    DrawBorderRow(state, nextDrawnBoardIndex, "├", "┼", "┤", "───", false, maxWidth, sb);
+                    DrawBorderRow(gameView, nextDrawnBoardIndex, "├", "┼", "┤", "───", false, maxWidth, sb);
                 }
-                DrawBoardSpacesRow(state, nextDrawnBoardIndex, player, "│", activeBoardIndex, row, boardWidth, maxWidth, sb);
+                DrawBoardSpacesRow(gameView, nextDrawnBoardIndex, "│", activeBoardIndex, row, boardWidth, maxWidth, sb);
             }
-            nextDrawnBoardIndex = DrawBorderRow(state, nextDrawnBoardIndex, "└", "┴", "┘", "───", false, maxWidth, sb);
+            nextDrawnBoardIndex = DrawBorderRow(gameView, nextDrawnBoardIndex, "└", "┴", "┘", "───", false, maxWidth, sb);
         }
 
         sb.AppendLine();
@@ -44,7 +43,7 @@ public static class BoardRenderer {
     /// Wraps to newline when maxWidth is exceeded.
     /// </summary>
     private static int DrawBorderRow(
-        TicTacToeState state,
+        TicTacToeView gameView,
         int startBoardIndex,
         string startBarString, 
         string midBarString, 
@@ -55,8 +54,8 @@ public static class BoardRenderer {
         StringBuilder sb
     ) {
         var boardIndex = startBoardIndex;
-        for (; boardIndex < state.Boards.Count; boardIndex += 1) {
-            var board = state.Boards[boardIndex];
+        for (; boardIndex < gameView.Boards.Count; boardIndex += 1) {
+            var board = gameView.Boards[boardIndex];
             var cursorX = sb.GetCursorX();
             
             //wrap check - break if cursor would exceed maxWidth
@@ -87,9 +86,8 @@ public static class BoardRenderer {
     /// Wraps to newline when maxWidth is exceeded.
     /// </summary>
     private static int DrawBoardSpacesRow(
-        TicTacToeState state, 
+        TicTacToeView gameView, 
         int startBoardIndex,
-        Player player,
         string borderBarString,
         int? activeBoardIndex,
         int rowIndex,
@@ -97,9 +95,9 @@ public static class BoardRenderer {
         int maxWidth,
         StringBuilder sb
     ) {
-        for (int boardIndex = startBoardIndex; boardIndex < state.Boards.Count; boardIndex += 1)
+        for (int boardIndex = startBoardIndex; boardIndex < gameView.Boards.Count; boardIndex += 1)
         {
-            var board = state.Boards[boardIndex];
+            var board = gameView.Boards[boardIndex];
             var cursorX = sb.GetCursorX();
             
             //wrap check - break if cursor would exceed maxWidth
@@ -110,13 +108,13 @@ public static class BoardRenderer {
             sb.Append("  ");
 
             for(var col = 0; col < board.ColumnCount; col += 1) {
-                var body = ModelToCommandNameUtility.GetSpaceCommandName(state, player, boardIndex, activeBoardIndex, col, rowIndex);
+                var body = ModelToCommandNameUtility.GetSpaceCommandName(gameView, boardIndex, activeBoardIndex, col, rowIndex);
                 DrawSpaceBody(body, borderBarString, sb);
             }
             sb.Append(borderBarString);
         }
         sb.AppendLine();
-        return state.Boards.Count;
+        return gameView.Boards.Count;
     }
 
     /// <summary>

@@ -1,6 +1,12 @@
 namespace KriegspielTicTacToe.Model;
 
+#pragma warning disable CS0659, CS0661 
+// Type overrides Object.Equals(object o) and operator == and operator != but
+// does not override Object.GetHashCode(). We arenot overriding GetHashCode
+// because that's for Dictionary keys and this is too mutable to be ever used
+// for that.
 public class PlayActionBuffer<TPlayAction, TState> : IPlayActionBuffer
+#pragma warning restore CS0659, CS0661
 where TPlayAction : PlayAction<TPlayAction, TState>
 where TState : IGameState {
     [JsonProperty(ItemTypeNameHandling = TypeNameHandling.All)]
@@ -56,8 +62,5 @@ where TState : IGameState {
 
     public static bool operator != (PlayActionBuffer<TPlayAction, TState>? a, PlayActionBuffer<TPlayAction, TState>? b)
     => !(a == b);
-    
-    // not overriding GetHashCode because that's for Dictionary keys and this is
-    // too mutable to be ever used for that.
     #endregion
 }

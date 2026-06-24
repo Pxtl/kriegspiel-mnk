@@ -3,32 +3,15 @@ using OneOf.Types;
 
 namespace KriegspielTicTacToe.Model.TicTacToe;
 
-public record TicTacToeState : GameState<TicTacToeState, TicTacToeGameType, TicTacToeBoard, TicTacToePlayAction> {
+public record TicTacToeState : GameState<TicTacToeState, TicTacToeTemplate, TicTacToeScoring, TicTacToePlayAction> {
+    [Obsolete]
     public TicTacToeState() : base() { }
 
     public TicTacToeState(
         Player[] players,
-        TicTacToeGameType gameType,
+        TicTacToeTemplate gameTemplate,
         bool isRandomPlayerOrder
-    ) : base(players, gameType, isRandomPlayerOrder) { }
-
-    public OneOf<NotFound, Result<int>> GetBoardIndexByName(string boardName) {
-        var boardNameAsInt = int.Parse(boardName);
-        var boardIndex = boardNameAsInt - 1;
-        return (boardIndex >= 0 && boardIndex < Boards.Count) 
-            ? new Result<int>(boardIndex)
-            : new NotFound();
-    }
-
-    public IEnumerable<string> BoardNames {
-        get {
-            for(var i = 1; i <= Boards.Count; i += 1) {
-                yield return i.ToString();
-            }
-        }
-    }
-        
-    public Board GetBoardByIndex(int boardIndex) => Boards[boardIndex];
+    ) : base(players, gameTemplate, isRandomPlayerOrder) { }
 
     public OneOf<NotFound, BoardIsDone, Result<int>> SelectBoard(string boardName)
         => GetBoardIndexByName(boardName).Match(
@@ -80,54 +63,9 @@ public record TicTacToeState : GameState<TicTacToeState, TicTacToeGameType, TicT
             return new ActionQueuedSuccessfully();
         }
     }
-
-    [JsonIgnore()]
-    public IEnumerable<int> ActiveBoardIndices {get {
-        for(int i = 0; i < Boards.Count; i+=1) {
-            if(!Boards[i].IsDone) {
-                yield return i; 
-            }
-        }
-    }}
     
     [JsonIgnore()]
-    public int? SingleActiveBoardIndex {get {
-        var firstElements = ActiveBoardIndices.Take(2).ToArray();
-        return (firstElements.Length == 1) ? firstElements.Single() : null;
-    }}
-
-    [JsonIgnore()]
-    public bool IsGameOver
-        => Boards.All(b => b.IsDone) || PlayManager.ActivePlayers.Count() == 1;
-    
-    [JsonIgnore()]
-    public string GameStateText
-        => IsGameOver 
-        ? (Winner == null
-            ? "Game over. Tie game."
-            : $"Game over. {Winner} wins."
-        )
-        : (PlayManager.GameStateText 
-            + Environment.NewLine
-            + ResignedPlayersText
-        );
-
-    public string ResignedPlayersText
-        => PlayManager.ResignedPlayersSet.Count > 0
-        ? $"Resigned players: {string.Join(", ", PlayManager.ResignedPlayersSet.OrderBy(p => p.Mark))}"
-        : "";
-    
-    [JsonIgnore()]
-    public Player? Winner {
-        get {
-            if(!IsGameOver) return null;
-            if(PlayManager.ActivePlayers.Count() == 1) return PlayManager.ActivePlayers.Single();
-            return null;
-        }
-    }
-    
-    [JsonIgnore()]
-    public ScoreCard ScoreCard 
+    public override ScoreCard ScoreCard 
         //make sure all players are in the scorecard even those with 0.
         => new ScoreCard(PlayManager.ActivePlayers.Select(p => new PlayerScore(p, 0))) 
             // can't use ienumerable.sum on non-numeric objects, operators don't work that way.

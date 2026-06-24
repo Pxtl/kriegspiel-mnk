@@ -3,7 +3,7 @@ namespace KriegspielTicTacToe.Model.Tests;
 public class StateUtilityTests {
     [Fact]
     public void SerializeAndDeserialize_Board() {
-        Board expectedBoard = new TicTacToeBoard(4, 4, 3, true);
+        var expectedBoard = new Board(4, 4, new TicTacToeScoring(3, true));
         var boardString = StateStorage.StateToString(expectedBoard);
         var actualBoard = StateStorage.StringToState<Board>(boardString);
         actualBoard.Should().BeEquivalentTo(expectedBoard);
@@ -11,13 +11,13 @@ public class StateUtilityTests {
 
     [Fact]
     public void SerializeAndDeserialize_BlankGameState() {
-        var boardBuilder3x3 = new TicTacToeBoardBuilder(3, 3);
+        var boardBuilder3x3 = new BoardBuilder(3, 3);
         IGameState expectedState = new TicTacToeState(
             new char[] { 'X', 'O' }.ToPlayersArray(),
-            new TicTacToeGameType([boardBuilder3x3, boardBuilder3x3, boardBuilder3x3], isSynchronousMode: false),
+            new TicTacToeTemplate([boardBuilder3x3, boardBuilder3x3, boardBuilder3x3], isSynchronousMode: false),
             isRandomPlayerOrder: false
         );
-        var stateString = StateStorage.StateToString<IGameState>(expectedState);
+        var stateString = StateStorage.StateToString(expectedState);
         var actualState = StateStorage.StringToState<IGameState>(stateString);
         actualState.Should().BeOfType(typeof(TicTacToeState));
         actualState.Should().BeEquivalentTo(expectedState);
@@ -25,13 +25,13 @@ public class StateUtilityTests {
 
     [Fact]
     public void SerializeAndDeserialize_SynchronousGameState() {
-        var boardBuilder3x3 = new TicTacToeBoardBuilder(3, 3);
+        var boardBuilder3x3 = new BoardBuilder(3, 3);
         var players = new char[] { 'X', 'O' }.ToPlayersArray();
         var playerX = players[0];
         var playerO = players[1];
         var expectedState = new TicTacToeState(
             players,
-            new TicTacToeGameType([boardBuilder3x3, boardBuilder3x3, boardBuilder3x3], isSynchronousMode: true),
+            new TicTacToeTemplate([boardBuilder3x3, boardBuilder3x3, boardBuilder3x3], isSynchronousMode: true),
             isRandomPlayerOrder: false
         );
 

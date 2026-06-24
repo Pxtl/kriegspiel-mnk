@@ -3,10 +3,10 @@ namespace KriegspielTicTacToe.Model.TicTacToe;
 /// <summary>
 /// Represents a game type configuration including board builders and play mode settings.
 /// </summary>
-public record TicTacToeGameType
-: GameType<TicTacToeBoard> {
-    public TicTacToeGameType(
-        IEnumerable<TicTacToeBoardBuilder> boardBuilders,
+public record TicTacToeTemplate
+: GameTemplate<TicTacToeScoring> {
+    public TicTacToeTemplate(
+        IEnumerable<BoardBuilder> boardBuilders,
         bool isSynchronousMode
     )
     : base() {
@@ -17,8 +17,8 @@ public record TicTacToeGameType
     }
 
     [JsonProperty(TypeNameHandling = TypeNameHandling.All)]
-    public IEnumerable<TicTacToeBoardBuilder> BoardBuilders {get; init;}
+    public IEnumerable<BoardBuilder> BoardBuilders {get; init;}
 
-    public override IReadOnlyList<TicTacToeBoard> ConstructBoards()
-    => BoardBuilders.Select(b => new TicTacToeBoard(b)).ToList();
+    public override IReadOnlyList<Board> ConstructBoards()
+    => BoardBuilders.Select(b => new Board(b)).ToList();
 }

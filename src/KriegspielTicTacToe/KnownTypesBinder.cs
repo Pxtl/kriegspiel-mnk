@@ -6,10 +6,12 @@ namespace KriegspielTicTacToe;
 public class KnownTypesBinder : Newtonsoft.Json.Serialization.ISerializationBinder {
     public static KnownTypesBinder Instance {get;} = new KnownTypesBinder();
     public Dictionary<string, Type> KnownTypes {get;} = new Type[] {
-        typeof(TicTacToeBoard),
-        typeof(TicTacToeBoardBuilder),
-        typeof(TicTacToeGameType),
+        typeof(Board),
+        typeof(BoardBuilder),
+        typeof(GameScoring),
+        typeof(TicTacToeTemplate),
         typeof(TicTacToePlayAction),
+        typeof(TicTacToeScoring),
         typeof(TicTacToeState),
         typeof(RoundRobinPlayManager),
         typeof(RoundRobinPlayManagerFactory),

@@ -35,7 +35,7 @@ class Program {
                 var isRandomPlayer = parseResult.GetValue(Options.RandomOption);
                 var isSynchronousMode = parseResult.GetValue(Options.SynchronousModeOption);
 
-                var boardBuilders = new TicTacToeBoardBuilder[boardsNumber!.Value];
+                var boardBuilders = new BoardBuilder[boardsNumber!.Value];
 
                 var playerList = new List<Model.Player>();
                 foreach(var player in players!) {
@@ -48,7 +48,11 @@ class Program {
                     : OneOf<Model.Player, LocalHotseatGame>.FromT0(new Model.Player(joinAsPlayer));
 
                 for(var i = 0; i < boardsNumber!; i+=1) {
-                    boardBuilders[i] = new TicTacToeBoardBuilder(size!.Value, size!.Value, scoringLength, isBoardDoneWhenScored);
+                    boardBuilders[i] = new BoardBuilder(
+                        size!.Value,
+                        size!.Value,
+                        new TicTacToeScoring(scoringLength, isBoardDoneWhenScored)
+                    );
                 }
                 
                 GameLogic.RunGame (

@@ -1,0 +1,120 @@
+namespace KriegspielTicTacToe.Model.TicTacToe;
+
+public record TicTacToeScoring(sbyte? ScoringLength = null, bool IsBoardDoneWhenScored = false)
+: GameScoring() {
+    public static BoardBuilder CreateBoardBuilder(
+        sbyte Width,
+        sbyte Height,
+        sbyte? ScoringLength = null,
+        bool IsBoardDoneWhenScored = false
+    ) {
+        return new BoardBuilder(
+            Width,
+            Height,
+            new TicTacToeScoring(ScoringLength, IsBoardDoneWhenScored)
+        ) { };
+    }
+
+    #region Calculated Properties
+    public override ScoreCard Score(Board board) {
+        var result = new ScoreCard();
+        sbyte width = (sbyte)board.Spaces.GetLength(0);
+        sbyte height = (sbyte)board.Spaces.GetLength(1);
+
+        var horizontalScoringLength = width;
+        var verticalScoringLength = height;
+        var diagonalScoringLength = Math.Min(width, height);
+
+        if (ScoringLength.HasValue) {
+            horizontalScoringLength = ScoringLength.Value;
+            verticalScoringLength = ScoringLength.Value;
+            diagonalScoringLength = ScoringLength.Value;
+        }
+            
+        foreach (var spaceEnumerator in board.BoardAsEnumerable()) {
+            string? lineOwnerMark = spaceEnumerator.Space.Mark;
+            if(lineOwnerMark != null) {
+                var lineOwnerPlayer = new Player(lineOwnerMark);
+                result += ScoreSpace(
+                    lineOwnerPlayer,
+                    board,
+                    (spaceEnumerator.Col, spaceEnumerator.Row),
+                    horizontalScoringLength,
+                    verticalScoringLength,
+                    diagonalScoringLength
+                );
+            }
+        }
+        return result;
+    }
+
+    public ScoreCard ScoreSpace(
+        Player lineOwnerPlayer,
+        Board board,
+        (sbyte Col, sbyte Row) pos,
+        sbyte horizontalScoringLength,
+        sbyte verticalScoringLength,
+        sbyte diagonalScoringLength
+    ) 
+    => ScoreSpace(lineOwnerPlayer, board, pos, (1, 0), horizontalScoringLength)
+        + ScoreSpace(lineOwnerPlayer, board, pos, (0, 1), verticalScoringLength)
+        + ScoreSpace(lineOwnerPlayer, board, pos, (1, 1), diagonalScoringLength)
+        + ScoreSpace(lineOwnerPlayer, board, pos, (1, -1), diagonalScoringLength);
+
+    /// <summary>
+    /// Score a given space for the given player and the given direction. Only
+    /// counts score for lines that *start* on the space, not ones that continue
+    /// on the space.
+    /// </summary>
+    /// <param name="lineOwnerPlayer"></param>
+    /// <param name="lineStartPos"></param>
+    /// <param name="delta"></param>
+    /// <param name="scoreLen"></param>
+    /// <returns></returns>
+    public ScoreCard ScoreSpace(
+        Player lineOwnerPlayer,
+        Board board,
+        (sbyte Col, sbyte Row) lineStartPos,
+        (sbyte Col, sbyte Row) delta,
+        int scoreLen
+    ) {
+        var boardSize = ((sbyte)board.Spaces.GetLength(0), (sbyte)board.Spaces.GetLength(1));
+        (sbyte Col, sbyte Row) endPos = ExtrapolatePos(lineStartPos, delta, scoreLen - 1);
+
+        //end point is outside of board.
+        if (!board.IsSpaceInsideOfBoard(endPos, boardSize)) {
+            return ScoreCard.Empty;
+        }
+
+        (sbyte Col, sbyte Row) beforeStartPos = ExtrapolatePos(lineStartPos, delta, -1);
+        if (
+            board.IsSpaceInsideOfBoard(beforeStartPos, boardSize)
+            && board.Spaces[beforeStartPos.Col, beforeStartPos.Row].Mark == lineOwnerPlayer.Mark
+        ) {
+            // line already started before this space, return false to prevent double-counting.
+            return ScoreCard.Empty;
+        }
+
+        var lineLength = 0;
+        for (sbyte i = 0; board.IsSpaceInsideOfBoard(ExtrapolatePos(lineStartPos, delta, i), boardSize); i += 1) {
+            (sbyte Col, sbyte Row) curPos = ExtrapolatePos(lineStartPos, delta, i);
+
+            if (lineOwnerPlayer.Mark != board.Spaces[curPos.Col, curPos.Row].Mark) {
+                break;
+            } else {
+                lineLength = i+1;
+            }
+        }
+        var lineScore = lineLength / scoreLen;
+        return (lineScore > 0) 
+            ? new ScoreCard(lineOwnerPlayer, lineScore)
+            : ScoreCard.Empty;
+    }
+    
+    public override bool IsDone(Board board)
+    => IsBoardDoneWhenScored && board.ScoreCard.PlayerScores.Any(s => s.Score > 0);
+    #endregion
+
+    private static (sbyte Col, sbyte Row) ExtrapolatePos((sbyte Col, sbyte Row) pos, (sbyte Col, sbyte Row) delta, int multiplier)
+    => ((sbyte)(pos.Col + delta.Col * multiplier), (sbyte)(pos.Row + delta.Row * multiplier));
+}

@@ -11,7 +11,7 @@ internal static class GameLogic {
         FileInfo sharedStateFilePath,
         bool doForceNewGame,
         Player[] players,
-        IEnumerable<TicTacToeBoardBuilder> boardBuilders,
+        IEnumerable<BoardBuilder> boardBuilders,
         OneOf<Player, LocalHotseatGame> joinAsPlayer,
         bool isRandomPlayerOrder,
         bool isSynchronousMode
@@ -23,7 +23,7 @@ internal static class GameLogic {
         } else {
             state = new TicTacToeState(
                 players,
-                new TicTacToeGameType(boardBuilders, isSynchronousMode: isSynchronousMode), 
+                new TicTacToeTemplate(boardBuilders, isSynchronousMode: isSynchronousMode), 
                 isRandomPlayerOrder: isRandomPlayerOrder
             );
             Console.Out.WriteLine("Starting new game!");
@@ -81,8 +81,9 @@ internal static class GameLogic {
                         }
 
                         if (hasStateChanged) {
+                            var gameView = new TicTacToeView(currentPlayer, state);
                             Console.Out.WriteLine(
-                                BoardRenderer.DrawBoards(state, currentPlayer, activeBoardIndex: null, maxWidth: Console.BufferWidth)
+                                BoardRenderer.DrawBoards(gameView, activeBoardIndex: null, maxWidth: Console.BufferWidth)
                             );
                         }
 
@@ -130,13 +131,14 @@ internal static class GameLogic {
         {
             Console.Out.WriteLine(state.GameStateText);
             Console.Out.WriteLine($"Player {currentPlayer.Mark}, take your turn.");
-            
+           
             var activeBoardIndex = state.SingleActiveBoardIndex;
 
             if (!activeBoardIndex.HasValue) {
+                var gameView = new TicTacToeView(currentPlayer, state);
                 //player picks a board.
                 Console.Out.WriteLine(
-                    BoardRenderer.DrawBoards(state, currentPlayer, activeBoardIndex, maxWidth: Console.BufferWidth)
+                    BoardRenderer.DrawBoards(gameView, activeBoardIndex, maxWidth: Console.BufferWidth)
                 );
                 var availableBoardCommands = state.BoardNames;
                 var boardCommand = InputUtility.ReadCommandInputWithAddedStandardPlayerCommands(
@@ -179,8 +181,9 @@ internal static class GameLogic {
             if (activeBoardIndex.HasValue) {
                 var boardIndex = activeBoardIndex.Value;
                 var boardCode = boardIndex + 1;
+                var gameView = new TicTacToeView(currentPlayer, state);
                 Console.Out.WriteLine(
-                    BoardRenderer.DrawBoards(state, currentPlayer, boardIndex, maxWidth: Console.BufferWidth)
+                    BoardRenderer.DrawBoards(gameView, boardIndex, maxWidth: Console.BufferWidth)
                 );
                 var spaceCommand = InputUtility.ReadCommandInputWithAddedStandardPlayerCommands(
                     "Press numeric key(s) to play a space, or 'r' to resign.",
