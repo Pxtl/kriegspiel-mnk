@@ -16,12 +16,12 @@ internal static class GameLogic {
         bool isRandomPlayerOrder,
         bool isSynchronousMode
     ) {
-        TicTacToeState state;
+        GameState<TicTacToePlayAction> state;
         if(sharedStateFilePath.Exists && !doForceNewGame) {
             state = StateStorage.LoadState(sharedStateFilePath.FullName);
             Console.Out.WriteLine($"Loaded saved game!");
         } else {
-            state = new TicTacToeState(
+            state = new GameState<TicTacToePlayAction>(
                 players,
                 new TicTacToeTemplate(boardBuilders, isSynchronousMode: isSynchronousMode), 
                 isRandomPlayerOrder: isRandomPlayerOrder
@@ -60,7 +60,7 @@ internal static class GameLogic {
                         }
                     }
                     Console.Out.WriteLine();
-                    return (state.IsGameOver)
+                    return state.IsGameOver
                         ? OneOf<Result<Player>, GameIsOver>.FromT1(new GameIsOver())
                         : new Result<Player>(player);
                 },
@@ -77,11 +77,12 @@ internal static class GameLogic {
                         var hasStateChanged = false;
                         using (var stateStorage = new StateStorage(sharedStateFilePath.FullName)) {
                             state = stateStorage.State;
-                            state.PlayManager.EndTurn(currentPlayer, out hasStateChanged);
+                            var gameView = state.GetView(currentPlayer);
+                            gameView.EndTurn(out hasStateChanged);
                         }
 
                         if (hasStateChanged) {
-                            var gameView = new GameView(currentPlayer, state);
+                            var gameView = state.GetView(currentPlayer);
                             Console.Out.WriteLine(
                                 BoardRenderer.DrawBoards(gameView, activeBoardIndex: null, maxRenderWidth: Console.BufferWidth)
                             );
@@ -125,7 +126,7 @@ internal static class GameLogic {
         sharedStateFilePath.Delete();
     }
 
-    private static bool DoPlayerTurnLoop(TicTacToeState state, Player currentPlayer, string sharedStateFilePath) {
+    private static bool DoPlayerTurnLoop(GameState<TicTacToePlayAction> state, Player currentPlayer, string sharedStateFilePath) {
         var currentPlayerIsDoneTurn = false;
         while (!currentPlayerIsDoneTurn)
         {
@@ -135,26 +136,27 @@ internal static class GameLogic {
             var activeBoardIndex = state.SingleActiveBoardIndex;
 
             if (!activeBoardIndex.HasValue) {
-                var gameView = new GameView(currentPlayer, state);
+                var gameView = state.GetView(currentPlayer);
                 //player picks a board.
                 Console.Out.WriteLine(
                     BoardRenderer.DrawBoards(gameView, activeBoardIndex, maxRenderWidth: Console.BufferWidth)
                 );
-                var availableBoardCommands = state.BoardNames;
+                var availableBoardCommands = gameView.BoardNames;
+                //TODO: Just make the 1st char of the command the board number.
                 var boardCommand = InputUtility.ReadCommandInputWithAddedStandardPlayerCommands(
                     "Press numeric key(s) to pick a board, or 'r' to resign.",
-                    state.BoardNames
+                    availableBoardCommands
                 );
                 boardCommand.Switch(
                     result => {
                         if(result.Value == "r") {
                             currentPlayerIsDoneTurn = true;
                             using (var stateStorage = new StateStorage(sharedStateFilePath)) {
-                                state = stateStorage.State;
-                                state.PlayManager.ResignPlayer(currentPlayer);
+                                gameView = new GameView(stateStorage.State, currentPlayer);
+                                gameView.ResignPlayer();
                             }
                         } else {
-                            state.SelectBoard(result.Value).Switch(
+                            gameView.SelectBoard(result.Value).Switch(
                                 notFound => {
                                     currentPlayerIsDoneTurn = false;
                                     Console.WriteLine($"That is not a valid board.  Please pick an incomplete board.");
@@ -181,7 +183,7 @@ internal static class GameLogic {
             if (activeBoardIndex.HasValue) {
                 var boardIndex = activeBoardIndex.Value;
                 var boardCode = boardIndex + 1;
-                var gameView = new GameView(currentPlayer, state);
+                var gameView = state.GetView(currentPlayer);
                 Console.Out.WriteLine(
                     BoardRenderer.DrawBoards(gameView, boardIndex, maxRenderWidth: Console.BufferWidth)
                 );
@@ -193,22 +195,21 @@ internal static class GameLogic {
                     result => {
                         using (var stateStorage = new StateStorage(sharedStateFilePath)) {
                             state = stateStorage.State;
+                            gameView = state.GetView(currentPlayer);
                             if(result.Value == "r") {
                                 currentPlayerIsDoneTurn = true;
-                                state.PlayManager.ResignPlayer(currentPlayer);
+                                gameView.ResignPlayer();
                             } else {
-                                state.PlaySpace(boardIndex, result.Value, currentPlayer).Switch(
-                                    notFound => {
-                                        currentPlayerIsDoneTurn = false;
-                                        Console.WriteLine("Invalid space.");
-                                    },
-                                    actionQueuedSuccessfully => {
+                                var playAction = TicTacToePlayAction.Create(state, boardIndex, result.Value, result.Value);
+                                playAction.Attempt(state).Switch(
+                                    isLegalToQueue => {
+                                        state.Enqueue(playAction);
                                         currentPlayerIsDoneTurn = true;
                                         Console.WriteLine($"Played on board {boardCode}, space {result.Value}");
                                     }, 
                                     newlyLearned => {
                                         currentPlayerIsDoneTurn = true;
-                                        Console.WriteLine($"Space already taken by player '{newlyLearned.Value}'.");
+                                        Console.WriteLine($"Space already filled: '{newlyLearned.Mark}'.");
                                     },
                                     alreadyPlayed => {
                                         currentPlayerIsDoneTurn = false;
@@ -236,7 +237,8 @@ internal static class GameLogic {
             .ToOrderedDictionary(
                 p => p.Value,
                 p => p.Key,
-                StringComparer.OrdinalIgnoreCase);
+                StringComparer.OrdinalIgnoreCase
+            );
 
         while (true) {
             if (playManager.PlayersAvailableForTurn.Count() == 1) {
@@ -261,7 +263,8 @@ internal static class GameLogic {
                     return $"Player {p.Mark}{keyDisplay}";
                 });
 
-            var prompt = "Who will take the next turn? Press the player's key to take their turn (or press 'q' to quit the game for everyone)." + Environment.NewLine
+            var prompt = "Who will take the next turn? Press the player's key to take their turn (or press 'q' to quit the game for everyone)."
+                + Environment.NewLine
                 + string.Join(" ", playerDisplayList);
             var validCommands = ((IEnumerable<string>)["q"]).Concat(commandToPlayer.Keys);
             var commandResult = InputUtility.ReadCommandInputLoop(prompt, validCommands);

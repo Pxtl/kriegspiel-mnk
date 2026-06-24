@@ -1,5 +1,5 @@
 namespace KriegspielTicTacToe.Model;
 
-public interface IPlayActionBuffer {
+public interface IPlayActionQueue {
     void ExecutePendingActions();
 }

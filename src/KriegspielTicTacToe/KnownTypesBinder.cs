@@ -6,13 +6,12 @@ namespace KriegspielTicTacToe;
 public class KnownTypesBinder : Newtonsoft.Json.Serialization.ISerializationBinder {
     public static KnownTypesBinder Instance {get;} = new KnownTypesBinder();
     public Dictionary<string, Type> KnownTypes {get;} = new Type[] {
-        typeof(Board),
         typeof(BoardBuilder),
-        typeof(GameScoring),
+        typeof(GameRuleset),
+        typeof(GameState<TicTacToePlayAction>),
         typeof(TicTacToeTemplate),
         typeof(TicTacToePlayAction),
-        typeof(TicTacToeScoring),
-        typeof(TicTacToeState),
+        typeof(TicTacToeRuleset),
         typeof(RoundRobinPlayManager),
         typeof(RoundRobinPlayManagerFactory),
         typeof(SynchronizedPlayManager),
@@ -20,6 +19,8 @@ public class KnownTypesBinder : Newtonsoft.Json.Serialization.ISerializationBind
         // the following type(s) are generally serialized without type data but
         // including them here prevents an exception if found unexpectedly.
         typeof(Player),
+        typeof(Board),
+        typeof(Space),
     }.ToDictionary(t => t.Name);
 
     public Type BindToType(string? assemblyName, string? typeName) {

@@ -1,6 +1,7 @@
 namespace KriegspielTicTacToe;
 
 using System.Text.RegularExpressions;
+using KriegspielTicTacToe.Model.Views;
 
 /// <summary>
 /// Static class for functions that calculate a typeable key for a given thing.
@@ -71,26 +72,26 @@ public static class ModelToCommandNameUtility {
     /// they have created or discovered.  If the player is the
     /// current-turn-player, then the space index codes will be displayed.
     /// </summary>
-    public static string GetSpaceCommandName(GameView gameView, int boardIndex, int? activeBoardIndex, int col, int row) {
+    public static string GetSpaceCommandName(GameView gameView, sbyte boardIndex, sbyte? activeBoardIndex, sbyte col, sbyte row) {
         ArgumentNullException.ThrowIfNull(gameView);
         var player = gameView.Player;
         player = gameView.IsGameOver //show for all players if the game is over.
             ? null
             : player;
 
-        var board = gameView.Boards[boardIndex];
-        var foundSpace = board.Spaces[col,row].ToString(player);
-        
+        var boardView = gameView.GetBoardViewByIndex(boardIndex);
+        var spaceView = boardView.GetSpaceView(col, row);
+
         if (
-            string.IsNullOrWhiteSpace(foundSpace) 
-            && !board.IsDone 
+            string.IsNullOrWhiteSpace(spaceView.Mark) 
+            && !boardView.IsDone 
             && gameView.CanTakeTurn
             && activeBoardIndex == boardIndex
         ) {
-            return board.GetSpaceNameAsInt(col, row)
-                .ToString(new string('0', board.SpaceNameLength)); //zero-pad
+            return boardView.GetSpaceNameAsInt(col, row)
+                .ToString(new string('0', boardView.SpaceNameLength)); //zero-pad
         } else {
-            return foundSpace;
+            return (spaceView.Mark ?? "").PadLeft(boardView.SpaceNameLength);
         }
     }
 }

@@ -24,7 +24,7 @@ public class RoundRobinPlayManager
     }
 
     protected override void EndedTurn(out bool hasStateChanged) {
-        PlayActionBuffer!.ExecutePendingActions();
+        ActionQueue!.ExecutePendingActions();
         hasStateChanged = true;
     }
 

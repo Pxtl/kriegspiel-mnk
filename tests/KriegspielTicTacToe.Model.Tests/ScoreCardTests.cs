@@ -4,13 +4,13 @@ public class ScoreCardTests {
     [Fact]
     public void Constructor_Empty_ReturnsEmptyScores() {
         var scoreCard = new ScoreCard();
-        scoreCard.HighestScore.Should().BeNull();
+        scoreCard.Highest.Should().Be(ScoreCard.Empty);
     }
 
     [Fact]
     public void Constructor_SingleScore() {
         var scoreCard = new ScoreCard(new Player("X"), 5);
-        scoreCard.HighestScore.Should().NotBeNull();
+        scoreCard.Highest.Should().NotBeNull();
     }
 
     [Fact]
@@ -20,7 +20,7 @@ public class ScoreCardTests {
             new PlayerScore(new Player("O"), 2) 
         });
         
-        scoreCard.HighestScore.Should().NotBeNull();
+        scoreCard.Highest.Should().NotBeNull();
     }
 
     [Fact]
@@ -29,6 +29,6 @@ public class ScoreCardTests {
         var b = new ScoreCard(new Player("O"), 2);
         
         var result = a + b;
-        result.HighestScore.Should().NotBeNull();
+        result.Highest.Should().NotBeNull();
     }
 }

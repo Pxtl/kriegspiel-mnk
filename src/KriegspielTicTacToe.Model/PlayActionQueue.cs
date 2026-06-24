@@ -5,12 +5,14 @@ namespace KriegspielTicTacToe.Model;
 // does not override Object.GetHashCode(). We arenot overriding GetHashCode
 // because that's for Dictionary keys and this is too mutable to be ever used
 // for that.
-public class PlayActionBuffer<TPlayAction, TState> : IPlayActionBuffer
+public class PlayActionQueue<TPlayAction> : IPlayActionQueue
 #pragma warning restore CS0659, CS0661
-where TPlayAction : PlayAction<TPlayAction, TState>
-where TState : IGameState {
+where TPlayAction : PlayAction {
     [JsonProperty(ItemTypeNameHandling = TypeNameHandling.All)]
     public List<TPlayAction> Actions {get;private set;} = [];
+
+    [JsonIgnore()]
+    public GameState<TPlayAction>? GameState { get; internal set; }
 
     public void Add(TPlayAction action) {
         Actions.Add(action);
@@ -39,9 +41,6 @@ where TState : IGameState {
         Clear();
     }
 
-    [JsonIgnore()]
-    public TState? GameState { get; internal set; }
-
     #region Equality
     // PlayActionBuffer when using record-based comparison fails at equality comparison,
     // so it must be implemented manually.
@@ -50,17 +49,17 @@ where TState : IGameState {
             return false;
         }
         
-        if (obj is PlayActionBuffer<TPlayAction, TState> otherBuffer) {
+        if (obj is PlayActionQueue<TPlayAction> otherBuffer) {
             return Actions.SequenceEqual(otherBuffer.Actions);
         } else {
             return false;
         }
     }
 
-    public static bool operator == (PlayActionBuffer<TPlayAction, TState>? a, PlayActionBuffer<TPlayAction, TState>? b)
+    public static bool operator == (PlayActionQueue<TPlayAction>? a, PlayActionQueue<TPlayAction>? b)
     => (a == null) && (b == null) || (a?.Equals(b) ?? false);
 
-    public static bool operator != (PlayActionBuffer<TPlayAction, TState>? a, PlayActionBuffer<TPlayAction, TState>? b)
+    public static bool operator != (PlayActionQueue<TPlayAction>? a, PlayActionQueue<TPlayAction>? b)
     => !(a == b);
     #endregion
 }

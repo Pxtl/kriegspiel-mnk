@@ -51,7 +51,7 @@ class Program {
                     boardBuilders[i] = new BoardBuilder(
                         size!.Value,
                         size!.Value,
-                        new TicTacToeScoring(scoringLength, isBoardDoneWhenScored)
+                        new TicTacToeRuleset(scoringLength, isBoardDoneWhenScored)
                     );
                 }
                 

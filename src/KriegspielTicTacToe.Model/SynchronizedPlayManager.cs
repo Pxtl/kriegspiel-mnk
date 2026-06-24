@@ -22,7 +22,7 @@ public class SynchronizedPlayManager
         );
 
     protected override void EndedRound(out bool hasStateChanged) {
-        PlayActionBuffer!.ExecutePendingActions();
+        ActionQueue!.ExecutePendingActions();
         hasStateChanged = true;
     }
 

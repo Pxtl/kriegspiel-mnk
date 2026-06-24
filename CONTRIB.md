@@ -216,7 +216,7 @@ This document captures the coding style patterns used in this project.
   after foreach, LINQ, etc.):
 
     ```csharp
-    for (var col = 0; col < Spaces.GetLength(0); col+=1) { ... }
+    for (sbyte col = 0; col < Spaces.GetLength(0); col+=1) { ... }
     var boardBuilders = new Model.BoardBuilder[boardsNumber!.Value];
     ```
 
@@ -277,7 +277,7 @@ This document captures the coding style patterns used in this project.
 - Return type of methods that may fail should use `OneOf` types:
 
     ```csharp
-    public OneOf<ActionQueuedSuccessfully, Result<char>, AlreadyPlayed> PlaySpace(...) {
+    public OneOf<ActionQueuedSuccessfully, Result<char>, AlreadyPlayed> Enqueue(new TicTacToePlayAction(...)) {
         ...
     }
     ```

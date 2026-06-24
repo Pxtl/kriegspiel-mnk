@@ -18,6 +18,7 @@
     <Using Include="KriegspielTicTacToe" />
     <Using Include="KriegspielTicTacToe.Model" />
     <Using Include="KriegspielTicTacToe.Model.TicTacToe" />
+    <Using Include="KriegspielTicTacToe.Model.Views" />
     <Using Include="FluentAssertions" />
   </ItemGroup>
 

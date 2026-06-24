@@ -1,6 +1,6 @@
-namespace KriegspielTicTacToe;
-
 using System.Text;
+
+namespace KriegspielTicTacToe;
 
 /// <summary>
 /// Draws the full board based on the given gamestate, from the perspective of
@@ -9,24 +9,24 @@ using System.Text;
 public static class BoardRenderer {
     public static string DrawBoards(
         GameView gameView,
-        int? activeBoardIndex,
+        sbyte? activeBoardIndex,
         int maxRenderWidth = int.MaxValue
     ) {
-        bool doShowBoardCode = gameView.Boards.Count > 1;
+        bool doShowBoardCode = gameView.BoardsCount > 1;
         var maxRowCount = gameView.Boards.Max(b => b.RowCount);
         var sb = new StringBuilder();
 
-        var nextDrawnBoardIndex = 0;
-        var boardWidth = GetBoardWidth(gameView.Boards[nextDrawnBoardIndex]);
+        sbyte nextDrawnBoardIndex = 0;
+        var boardRenderWidth = GetBoardRenderWidth(gameView.GetBoardViewByIndex(nextDrawnBoardIndex));
        
-        while (nextDrawnBoardIndex < gameView.Boards.Count) {
+        while (nextDrawnBoardIndex < gameView.BoardsCount) {
             DrawBorderRow(gameView, nextDrawnBoardIndex, "┌", "┬", "┐", "───", doShowBoardCode, maxRenderWidth, sb);
             
-            for(var row = 0; row < maxRowCount; row += 1) {
+            for(sbyte row = 0; row < maxRowCount; row += 1) {
                 if(row > 0) {
                     DrawBorderRow(gameView, nextDrawnBoardIndex, "├", "┼", "┤", "───", false, maxRenderWidth, sb);
                 }
-                DrawBoardSpacesRow(gameView, nextDrawnBoardIndex, "│", activeBoardIndex, row, boardWidth, maxRenderWidth, sb);
+                DrawBoardSpacesRow(gameView, nextDrawnBoardIndex, "│", activeBoardIndex, row, boardRenderWidth, maxRenderWidth, sb);
             }
             nextDrawnBoardIndex = DrawBorderRow(gameView, nextDrawnBoardIndex, "└", "┴", "┘", "───", false, maxRenderWidth, sb);
         }
@@ -35,31 +35,31 @@ public static class BoardRenderer {
         return sb.ToString();
     }
 
-    public static int GetBoardWidth(Board board)
+    public static int GetBoardRenderWidth(BoardView board)
         => board.ColumnCount * 4 + 3;
 
     /// <summary>
     /// Helper function to draw a border row of the board.
     /// Wraps to newline when maxWidth is exceeded.
     /// </summary>
-    private static int DrawBorderRow(
+    private static sbyte DrawBorderRow(
         GameView gameView,
-        int startBoardIndex,
+        sbyte startBoardIndex,
         string startBarString, 
         string midBarString, 
         string endBarString, 
         string spanString, 
         bool showBoardCode,
-        int maxWidth,
+        int maxRenderWidth,
         StringBuilder sb
     ) {
         var boardIndex = startBoardIndex;
-        for (; boardIndex < gameView.Boards.Count; boardIndex += 1) {
-            var board = gameView.Boards[boardIndex];
+        for (; boardIndex < gameView.BoardsCount; boardIndex += 1) {
+            var board = gameView.GetBoardViewByIndex(boardIndex);
             var cursorX = sb.GetCursorX();
             
             //wrap check - break if cursor would exceed maxWidth
-            if(cursorX > 0 && (cursorX + GetBoardWidth(board) > maxWidth)) {
+            if(cursorX > 0 && (cursorX + GetBoardRenderWidth(board) > maxRenderWidth)) {
                 break;
             }
 
@@ -72,7 +72,7 @@ public static class BoardRenderer {
 
             sb.Append($"{startBarString}{spanString}");
             
-            for(var col = 0; col < board.ColumnCount - 1; col += 1) {
+            for(sbyte col = 0; col < board.ColumnCount - 1; col += 1) {
                 sb.Append($"{midBarString}{spanString}");
             }
             sb.Append(endBarString);
@@ -85,36 +85,37 @@ public static class BoardRenderer {
     /// Draw a row of board spaces with window wrapping.
     /// Wraps to newline when maxWidth is exceeded.
     /// </summary>
-    private static int DrawBoardSpacesRow(
+    private static sbyte DrawBoardSpacesRow(
         GameView gameView, 
-        int startBoardIndex,
+        sbyte startBoardIndex,
         string borderBarString,
-        int? activeBoardIndex,
-        int rowIndex,
-        int boardWidth,
-        int maxWidth,
+        sbyte? activeBoardIndex,
+        sbyte rowIndex,
+        int boardRenderWidth,
+        int maxRenderWidth,
         StringBuilder sb
     ) {
-        for (int boardIndex = startBoardIndex; boardIndex < gameView.Boards.Count; boardIndex += 1)
+        var boardIndex = startBoardIndex;
+        for (; boardIndex < gameView.BoardsCount; boardIndex += 1)
         {
-            var board = gameView.Boards[boardIndex];
+            var board = gameView.GetBoardViewByIndex(boardIndex);
             var cursorX = sb.GetCursorX();
             
             //wrap check - break if cursor would exceed maxWidth
-            if(cursorX > 0 && (cursorX + boardWidth > maxWidth)) {
+            if(cursorX > 0 && (cursorX + boardRenderWidth > maxRenderWidth)) {
                 break;
             }
 
             sb.Append("  ");
 
-            for(var col = 0; col < board.ColumnCount; col += 1) {
+            for(sbyte col = 0; col < board.ColumnCount; col += 1) {
                 var body = ModelToCommandNameUtility.GetSpaceCommandName(gameView, boardIndex, activeBoardIndex, col, rowIndex);
                 DrawSpaceBody(body, borderBarString, sb);
             }
             sb.Append(borderBarString);
         }
         sb.AppendLine();
-        return gameView.Boards.Count;
+        return boardIndex;
     }
 
     /// <summary>

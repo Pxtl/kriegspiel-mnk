@@ -1,7 +1,10 @@
+using OneOf;
+using OneOf.Types;
+
 namespace KriegspielTicTacToe.Model.TicTacToe;
 
-public record TicTacToeScoring(sbyte? ScoringLength = null, bool IsBoardDoneWhenScored = false)
-: GameScoring() {
+public record TicTacToeRuleset(sbyte? ScoringLength = null, bool IsBoardDoneWhenScored = false)
+: GameRuleset() {
     public static BoardBuilder CreateBoardBuilder(
         sbyte Width,
         sbyte Height,
@@ -11,19 +14,19 @@ public record TicTacToeScoring(sbyte? ScoringLength = null, bool IsBoardDoneWhen
         return new BoardBuilder(
             Width,
             Height,
-            new TicTacToeScoring(ScoringLength, IsBoardDoneWhenScored)
+            new TicTacToeRuleset(ScoringLength, IsBoardDoneWhenScored)
         ) { };
     }
 
-    #region Calculated Properties
+    #region Methods
     public override ScoreCard Score(Board board) {
         var result = new ScoreCard();
-        sbyte width = (sbyte)board.Spaces.GetLength(0);
-        sbyte height = (sbyte)board.Spaces.GetLength(1);
+        sbyte colCount = board.ColumnCount;
+        sbyte rowCount = board.RowCount;
 
-        var horizontalScoringLength = width;
-        var verticalScoringLength = height;
-        var diagonalScoringLength = Math.Min(width, height);
+        var horizontalScoringLength = colCount;
+        var verticalScoringLength = rowCount;
+        var diagonalScoringLength = Math.Min(colCount, rowCount);
 
         if (ScoringLength.HasValue) {
             horizontalScoringLength = ScoringLength.Value;
@@ -32,7 +35,7 @@ public record TicTacToeScoring(sbyte? ScoringLength = null, bool IsBoardDoneWhen
         }
             
         foreach (var spaceEnumerator in board.BoardAsEnumerable()) {
-            string? lineOwnerMark = spaceEnumerator.Space.Mark;
+            string? lineOwnerMark = spaceEnumerator.Mark;
             if(lineOwnerMark != null) {
                 var lineOwnerPlayer = new Player(lineOwnerMark);
                 result += ScoreSpace(

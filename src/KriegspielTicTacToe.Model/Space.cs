@@ -17,8 +17,8 @@ public record Space {
     /// <summary>
     /// Test if this space is known to the given player.
     /// </summary>
-    public bool IsKnownToPlayer(Player player) 
-        => KnownToPlayersSet.Contains(player);
+    public bool IsKnownToPlayer(Player? player) 
+        => (player == null) || KnownToPlayersSet.Contains(player);
     
     /// <summary>
     /// Mark this space as known to the given player.

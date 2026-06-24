@@ -1,5 +1,7 @@
 namespace KriegspielTicTacToe.Model;
 
 public interface IGameTemplate {
-    public PlayManagerFactory PlayManagerFactory { get;}
+    PlayManagerFactory PlayManagerFactory { get;}
+    
+    IReadOnlyList<Board> ConstructBoards();
 }

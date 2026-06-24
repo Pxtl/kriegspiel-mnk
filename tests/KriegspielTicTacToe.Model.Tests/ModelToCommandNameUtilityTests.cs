@@ -253,9 +253,9 @@ public class ModelToCommandNameUtilityTests {
     [Fact]
     public void GetSpaceCommandName_Empty3x3BoardYourTurnIsAsExpected() {
         var players = new Player[] {new ("X"), new ("O")};
-        var gameState = new TicTacToeState(
+        var gameState = new GameState<TicTacToePlayAction>(
             players,
-            new TicTacToeTemplate([TicTacToeScoring.CreateBoardBuilder(3, 3), TicTacToeScoring.CreateBoardBuilder(3, 3)], isSynchronousMode: false),
+            new TicTacToeTemplate([TicTacToeRuleset.CreateBoardBuilder(3, 3), TicTacToeRuleset.CreateBoardBuilder(3, 3)], isSynchronousMode: false),
             isRandomPlayerOrder: false
         );
 
@@ -265,9 +265,9 @@ public class ModelToCommandNameUtilityTests {
             {"1", "2", "3"}
         };
 
-        for(var row = 0; row < expected.GetLength(0); row += 1) {
-            for(var col = 0; col < expected.GetLength(0); col += 1) {
-                var actual = ModelToCommandNameUtility.GetSpaceCommandName(new GameView(players[0], gameState), 0, 0, col, row);
+        for(sbyte row = 0; row < expected.GetLength(0); row += 1) {
+            for(sbyte col = 0; col < expected.GetLength(0); col += 1) {
+                var actual = ModelToCommandNameUtility.GetSpaceCommandName(new GameView(gameState, players[0]), 0, 0, col, row);
                 actual.Should().Be(expected[row, col]);
             }
         }
@@ -276,17 +276,17 @@ public class ModelToCommandNameUtilityTests {
     [Fact]
     public void GetSpaceCommandName_Empty3x3BoardNotYourTurnIsBlank() {
         var players = new Player[] {new ("X"), new ("O")};
-        var gameState = new TicTacToeState(
+        var gameState = new GameState<TicTacToePlayAction>(
             players,
-            new TicTacToeTemplate([TicTacToeScoring.CreateBoardBuilder(3, 3), TicTacToeScoring.CreateBoardBuilder(3, 3)], isSynchronousMode: false),
+            new TicTacToeTemplate([TicTacToeRuleset.CreateBoardBuilder(3, 3), TicTacToeRuleset.CreateBoardBuilder(3, 3)], isSynchronousMode: false),
             isRandomPlayerOrder: false
         );
 
         var expected = " ";
 
-        for(var row = 0; row < gameState.Boards[0].RowCount; row += 1) {
-            for(var col = 0; col < gameState.Boards[0].RowCount; col += 1) {
-                var actual = ModelToCommandNameUtility.GetSpaceCommandName(new GameView(players[1], gameState), 0, 0, col, row);
+        for(sbyte row = 0; row < gameState.Boards[0].RowCount; row += 1) {
+            for(sbyte col = 0; col < gameState.Boards[0].RowCount; col += 1) {
+                var actual = ModelToCommandNameUtility.GetSpaceCommandName(new GameView(gameState, players[1]), 0, 0, col, row);
                 actual.Should().Be(expected);
             }
         }
@@ -295,19 +295,19 @@ public class ModelToCommandNameUtilityTests {
     [Fact]
     public void GetSpaceCommandName_Empty3x3BoardYourTurnWrongBoardIsBlank() {
         var players = new Player[] {new ("X"), new ("O")};
-        var gameState = new TicTacToeState(
+        var gameState = new GameState<TicTacToePlayAction>(
             players,
-            new TicTacToeTemplate([TicTacToeScoring.CreateBoardBuilder(3, 3), TicTacToeScoring.CreateBoardBuilder(3, 3)], isSynchronousMode: false),
+            new TicTacToeTemplate([TicTacToeRuleset.CreateBoardBuilder(3, 3), TicTacToeRuleset.CreateBoardBuilder(3, 3)], isSynchronousMode: false),
             isRandomPlayerOrder: false
         );
 
         var expected = " ";
-        var renderBoardIndex = 0;
-        var activeBoardIndex = 1;
+        sbyte renderBoardIndex = 0;
+        sbyte activeBoardIndex = 1;
 
-        for(var row = 0; row < gameState.Boards[0].RowCount; row += 1) {
-            for(var col = 0; col < gameState.Boards[0].RowCount; col += 1) {
-                var actual = ModelToCommandNameUtility.GetSpaceCommandName(new GameView(players[0], gameState), renderBoardIndex, activeBoardIndex, col, row);
+        for(sbyte row = 0; row < gameState.Boards[0].RowCount; row += 1) {
+            for(sbyte col = 0; col < gameState.Boards[0].RowCount; col += 1) {
+                var actual = ModelToCommandNameUtility.GetSpaceCommandName(new GameView(gameState, players[0]), renderBoardIndex, activeBoardIndex, col, row);
                 actual.Should().Be(expected);
             }
         }
@@ -316,15 +316,15 @@ public class ModelToCommandNameUtilityTests {
     [Fact]
     public void GetSpaceCommandName_SecondRound3x3BoardYourTurnIsAsExpected() {
         var players = new Player[] {new ("X"), new ("O")};
-        var gameState = new TicTacToeState(
+        var gameState = new GameState<TicTacToePlayAction>(
             players,
-            new TicTacToeTemplate([TicTacToeScoring.CreateBoardBuilder(3, 3)], isSynchronousMode: false),
+            new TicTacToeTemplate([TicTacToeRuleset.CreateBoardBuilder(3, 3)], isSynchronousMode: false),
             isRandomPlayerOrder: false
         );
 
-        gameState.PlaySpace(0, 1, 1, players[0]);
+        gameState.Enqueue(new TicTacToePlayAction(0, 1, 1, players[0]));
         gameState.PlayManager.EndTurn(players[0], out _);
-        gameState.PlaySpace(0, 1, 1, players[1]);
+        gameState.Enqueue(new TicTacToePlayAction(0, 1, 1, players[1]));
         gameState.PlayManager.EndTurn(players[1], out _);
         gameState.PlayManager.EndRound(out _);
 
@@ -334,9 +334,9 @@ public class ModelToCommandNameUtilityTests {
             {"1", "2", "3"}
         };
 
-        for(var row = 0; row < expected.GetLength(0); row += 1) {
-            for(var col = 0; col < expected.GetLength(0); col += 1) {
-                var actual = ModelToCommandNameUtility.GetSpaceCommandName(new GameView(players[0], gameState), 0, 0, col, row);
+        for(sbyte row = 0; row < expected.GetLength(0); row += 1) {
+            for(sbyte col = 0; col < expected.GetLength(0); col += 1) {
+                var actual = ModelToCommandNameUtility.GetSpaceCommandName(new GameView(gameState, players[0]), 0, 0, col, row);
                 actual.Should().Be(expected[row, col]);
             }
         }
@@ -345,63 +345,63 @@ public class ModelToCommandNameUtilityTests {
     [Fact]
     public void GetSpaceCommandName_MoveSameSpaceCanSeeRevealedSpace() {
         var players = new Player[] {new ("X"), new ("O")};
-        var gameState = new TicTacToeState(
+        var gameState = new GameState<TicTacToePlayAction>(
             players,
-            new TicTacToeTemplate([TicTacToeScoring.CreateBoardBuilder(3, 3)], isSynchronousMode: false),
+            new TicTacToeTemplate([TicTacToeRuleset.CreateBoardBuilder(3, 3)], isSynchronousMode: false),
             isRandomPlayerOrder: false
         );
         //round 1
-        gameState.PlaySpace(0, 1, 1, players[0]);
+        gameState.Enqueue(new TicTacToePlayAction(0, 1, 1, players[0]));
         gameState.PlayManager.EndTurn(players[0], out _);
-        gameState.PlaySpace(0, 1, 1, players[1]);
+        gameState.Enqueue(new TicTacToePlayAction(0, 1, 1, players[1]));
         gameState.PlayManager.EndTurn(players[1], out _);
         gameState.PlayManager.EndRound(out _);
 
         var expected = players[0].Mark;
-        var actual = ModelToCommandNameUtility.GetSpaceCommandName(new GameView(players[1], gameState), 0, 0, col: 1, row: 1);
+        var actual = ModelToCommandNameUtility.GetSpaceCommandName(new GameView(gameState, players[1]), 0, 0, col: 1, row: 1);
         actual.Should().Be(expected);
     }
 
     [Fact]
     public void GetSpaceCommandName_MoveDifferentSpaceCantSeeOtherPlayer() {
         var players = new Player[] {new ("X"), new ("O")};
-        var gameState = new TicTacToeState(
+        var gameState = new GameState<TicTacToePlayAction>(
             players,
-            new TicTacToeTemplate([TicTacToeScoring.CreateBoardBuilder(3, 3)], isSynchronousMode: false),
+            new TicTacToeTemplate([TicTacToeRuleset.CreateBoardBuilder(3, 3)], isSynchronousMode: false),
             isRandomPlayerOrder: false
         );
         //round 1
-        gameState.PlaySpace(0, 1, 1, players[0]);
+        gameState.Enqueue(new TicTacToePlayAction(0, 1, 1, players[0]));
         gameState.PlayManager.EndTurn(players[0], out _);
-        gameState.PlaySpace(0, 0, 0, players[1]);
+        gameState.Enqueue(new TicTacToePlayAction(0, 0, 0, players[1]));
         gameState.PlayManager.EndTurn(players[1], out _);
         gameState.PlayManager.EndRound(out _);
 
         var expected = " ";
-        var actual = ModelToCommandNameUtility.GetSpaceCommandName(new GameView(players[1], gameState), 0, 0, col: 1, row: 1);
+        var actual = ModelToCommandNameUtility.GetSpaceCommandName(new GameView(gameState, players[1]), 0, 0, col: 1, row: 1);
         actual.Should().Be(expected);
     }
 
     [Fact]
     public void GetSpaceCommandName_ThirdRound3x3SpectatorViewIsAsExpected() {
         var players = new Player[] {new ("X"), new ("O")};
-        var gameState = new TicTacToeState(
+        var gameState = new GameState<TicTacToePlayAction>(
             players,
-            new TicTacToeTemplate([TicTacToeScoring.CreateBoardBuilder(3, 3)], isSynchronousMode: false),
+            new TicTacToeTemplate([TicTacToeRuleset.CreateBoardBuilder(3, 3)], isSynchronousMode: false),
             isRandomPlayerOrder: false
         );
 
         //round 1
-        gameState.PlaySpace(0, 1, 1, players[0]);
+        gameState.Enqueue(new TicTacToePlayAction(0, 1, 1, players[0]));
         gameState.PlayManager.EndTurn(players[0], out _);
-        gameState.PlaySpace(0, 1, 1, players[1]);
+        gameState.Enqueue(new TicTacToePlayAction(0, 1, 1, players[1]));
         gameState.PlayManager.EndTurn(players[1], out _);
         gameState.PlayManager.EndRound(out _);
 
         //round 2
-        gameState.PlaySpace(0, 0, 0, players[0]);
+        gameState.Enqueue(new TicTacToePlayAction(0, 0, 0, players[0]));
         gameState.PlayManager.EndTurn(players[0], out _);
-        gameState.PlaySpace(0, 2, 2, players[1]);
+        gameState.Enqueue(new TicTacToePlayAction(0, 2, 2, players[1]));
         gameState.PlayManager.EndTurn(players[1], out _);
         gameState.PlayManager.EndRound(out _);
 
@@ -411,9 +411,9 @@ public class ModelToCommandNameUtilityTests {
             {" ", " ", "O"}
         };
 
-        for(var row = 0; row < expected.GetLength(0); row += 1) {
-            for(var col = 0; col < expected.GetLength(0); col += 1) {
-                var actual = ModelToCommandNameUtility.GetSpaceCommandName(new GameView(null, gameState), 0, 0, col, row);
+        for(sbyte row = 0; row < expected.GetLength(0); row += 1) {
+            for(sbyte col = 0; col < expected.GetLength(0); col += 1) {
+                var actual = ModelToCommandNameUtility.GetSpaceCommandName(new GameView(gameState, null), 0, 0, col, row);
                 actual.Should().Be(expected[row, col]);
             }
         }
@@ -422,9 +422,9 @@ public class ModelToCommandNameUtilityTests {
     [Fact]
     public void GetSpaceCommandName_Empty4x4BoardYourTurnIsAsExpected() {
         var players = new Player[] {new ("X"), new ("O")};
-        var gameState = new TicTacToeState(
+        var gameState = new GameState<TicTacToePlayAction>(
             players,
-            new TicTacToeTemplate([TicTacToeScoring.CreateBoardBuilder(4, 4)], isSynchronousMode: false),
+            new TicTacToeTemplate([TicTacToeRuleset.CreateBoardBuilder(4, 4)], isSynchronousMode: false),
             isRandomPlayerOrder: false
         );
 
@@ -435,9 +435,9 @@ public class ModelToCommandNameUtilityTests {
             {"01", "02", "03", "04"}
         };
 
-        for(var row = 0; row < expected.GetLength(0); row += 1) {
-            for(var col = 0; col < expected.GetLength(0); col += 1) {
-                var actual = ModelToCommandNameUtility.GetSpaceCommandName(new GameView(players[0], gameState), 0, 0, col, row);
+        for(sbyte row = 0; row < expected.GetLength(0); row += 1) {
+            for(sbyte col = 0; col < expected.GetLength(0); col += 1) {
+                var actual = ModelToCommandNameUtility.GetSpaceCommandName(new GameView(gameState, players[0]), 0, 0, col, row);
                 actual.Should().Be(expected[row, col]);
             }
         }

@@ -20,6 +20,7 @@
   <ItemGroup>
     <Using Include="KriegspielTicTacToe.Model" />
     <Using Include="KriegspielTicTacToe.Model.TicTacToe" />
+    <Using Include="KriegspielTicTacToe.Model.Views" />
   </ItemGroup>
 
 </Project>

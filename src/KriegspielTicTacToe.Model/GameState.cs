@@ -1,13 +1,13 @@
 using System.Runtime.Serialization;
+using KriegspielTicTacToe.Model.TicTacToe;
+using KriegspielTicTacToe.Model.Views;
 using OneOf;
 using OneOf.Types;
 
 namespace KriegspielTicTacToe.Model;
 
-public abstract record GameState<TState, TTemplate, TAction> : IGameState
-where TState : GameState<TState, TTemplate, TAction>
-where TTemplate : GameTemplate
-where TAction : PlayAction<TAction, TState> {
+public record GameState<TAction> : IGameState
+where TAction : PlayAction {
     #region Constructors
     public GameState() { 
         // will probably get removed when members are initialized.
@@ -17,7 +17,7 @@ where TAction : PlayAction<TAction, TState> {
 
     public GameState(
         Player[] players,
-        TTemplate gameType,
+        IGameTemplate gameType,
         bool isRandomPlayerOrder
     ) {
         if(isRandomPlayerOrder) {
@@ -38,13 +38,13 @@ where TAction : PlayAction<TAction, TState> {
     public virtual IReadOnlyList<Board> Boards { get; init; }
 
     [JsonProperty(TypeNameHandling = TypeNameHandling.None)]
-    public PlayActionBuffer<TAction, TState> PlayActionBuffer { get; init; } = new PlayActionBuffer<TAction, TState>();
+    public PlayActionQueue<TAction> ActionQueue { get; init; } = new PlayActionQueue<TAction>();
     #endregion
 
     #region Initializer
     public virtual void Initialize() {
-        PlayActionBuffer.GameState = (TState)this;
-        PlayManager.PlayActionBuffer = PlayActionBuffer;
+        ActionQueue.GameState = this;
+        PlayManager.ActionQueue = ActionQueue;
     }
 
     [OnDeserialized]
@@ -53,70 +53,89 @@ where TAction : PlayAction<TAction, TState> {
     }
     #endregion
 
+    public GameView GetView(Player player)
+    => new(this, player);
+
+    #region GameState
+    /// <summary>
+    /// Scorecard for all active (non-resigned) players
+    /// </summary>
     [JsonIgnore()]
-    public abstract ScoreCard ScoreCard { get; }
+    public ScoreCard ScoreCard 
+    => AllPlayersScoreCard.FilterByPlayers(PlayManager.ActivePlayers);
 
-    public OneOf<NotFound, Result<int>> GetBoardIndexByName(string boardName) {
-        var boardNameAsInt = int.Parse(boardName);
-        var boardIndex = boardNameAsInt - 1;
-        return (boardIndex >= 0 && boardIndex < Boards.Count) 
-            ? new Result<int>(boardIndex)
-            : new NotFound();
-    }
-
-    public IEnumerable<string> BoardNames { get {
-        for(var i = 1; i <= Boards.Count; i += 1) {
-            yield return i.ToString();
-        }
-    }}
-
-    public Board GetBoardByIndex(int boardIndex)
-    => Boards[boardIndex];
-
-    [JsonIgnore()]
-    public IEnumerable<int> ActiveBoardIndices { get {
-        for(int i = 0; i < Boards.Count; i+=1) {
-            if(!Boards[i].IsDone) {
-                yield return i; 
-            }
-        }
-    }}
     
     [JsonIgnore()]
-    public int? SingleActiveBoardIndex { get {
-        var firstElements = ActiveBoardIndices.Take(2).ToArray();
-        return (firstElements.Length == 1) ? firstElements.Single() : null;
+    public ScoreCard AllPlayersScoreCard
+    => PlayManager.Players.BlankPlayersScoreCard()  //make sure all active players are in the scorecard even those with 0.
+        + Boards.Select(b => b.ScoreCard).SumScoreCards();
+
+
+    [JsonIgnore()]
+    public virtual IEnumerable<Player> Winners { get {
+        if(!IsGameOver) {
+            return [];
+        }
+        if(PlayManager.ActivePlayers.Count() == 1) {
+            return PlayManager.ActivePlayers;
+        }
+        else {
+            return ScoreCard.Highest.PlayerScores.Select(s => s.Player);
+        }
     }}
+
+    [JsonIgnore()]
+    public bool IsGameOver
+    => Boards.All(b => b.IsDone) || PlayManager.ActivePlayers.Count() == 1;
+
 
     [JsonIgnore()]
     public string GameStateText
     => IsGameOver 
-        ? (Winner == null
-            ? "Game over. Tie game."
-            : $"Game over. {Winner} wins."
+        ? (Winners.Count() == 0
+            ? "Game over. Nobody wins."
+            : $"Game over. {string.Join(" and ", Winners)} win(s)."
         )
         : (PlayManager.GameStateText 
             + Environment.NewLine
             + ResignedPlayersText
         );
 
+    [JsonIgnore()]
     public string ResignedPlayersText
     => PlayManager.ResignedPlayersSet.Count > 0
         ? $"Resigned players: {string.Join(", ", PlayManager.ResignedPlayersSet.OrderBy(p => p.Mark))}"
         : "";
-    
-    [JsonIgnore()]
-    public Player? Winner { get {
-        if(!IsGameOver) {
-            return null;
-        }
-        if(PlayManager.ActivePlayers.Count() == 1) {
-            return PlayManager.ActivePlayers.Single();
-        }
-        return null;
-    }}
+    #endregion
+
+    #region board management
 
     [JsonIgnore()]
-    public bool IsGameOver
-    => Boards.All(b => b.IsDone) || PlayManager.ActivePlayers.Count() == 1;
+    public IEnumerable<sbyte> ActiveBoardIndices { get {
+        for(sbyte i = 0; i < Boards.Count; i+=1) {
+            if(!Boards[i].IsDone) {
+                yield return i; 
+            }
+        }
+    }}
+    
+    /// <summary>
+    /// If there is only one active board, return its index.  Otherwise, return
+    /// null.
+    /// </summary>
+    [JsonIgnore()]
+    public sbyte? SingleActiveBoardIndex { get {
+        var firstElements = ActiveBoardIndices.Take(2).ToArray();
+        return (firstElements.Length == 1) ? firstElements.Single() : null;
+    }}
+
+    public Board GetBoardByIndex(sbyte boardIndex)
+    => Boards[boardIndex];
+
+	public void Enqueue(TAction playAction) {
+		ActionQueue.Add(playAction);
+	}
+	#endregion
 }
+
+public struct BoardIsDone;
