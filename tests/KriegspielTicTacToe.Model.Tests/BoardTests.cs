@@ -47,10 +47,10 @@ public class BoardTests {
     }
 
     [Fact]
-    public void SpaceNameLength_100x10Board_ReturnsCorrect() {
-        var board = new Board(100, 10, new MNKRuleset());
+    public void SpaceNameLength_26x10Board_ReturnsCorrect() {
+        var board = new Board(26, 10, new MNKRuleset());
         var spaceCount = board.SpaceCount;
-        board.SpaceNameLength.Should().Be((int)Math.Floor(Math.Log10(spaceCount)) + 1);
+        board.SpaceNameLength.Should().Be(3); //2 digit s for 1-10, 1 digit for letter.
     }
     #endregion
 
@@ -63,16 +63,16 @@ public class BoardTests {
     }
 
     [Fact]
-    public void BoardAsEnumerable_ReturnsAllSpaces_100x10() {
-        var board = new Board(100, 10, new MNKRuleset());
+    public void BoardAsEnumerable_ReturnsAllSpaces_26x10() {
+        var board = new Board(26, 10, new MNKRuleset());
         var spaces = board.BoardAsSpaceViewEnumerable().ToList();
-        spaces.Count.Should().Be(1000);
+        spaces.Count.Should().Be(260);
     }
     #endregion
 
     #region GetSpaceName
     [Fact]
-    public void GetSpaceName_3x3TopRightCorner_ReturnsExpected() {
+    public void GetSpaceName_3x3TopRightSpace_AsExpected() {
         // top-right corner (row 0, col 2) in 3x3
         // board matches layout of numpad, 1 is bottom left.
         var board = new Board(3, 3, new MNKRuleset());
@@ -81,19 +81,17 @@ public class BoardTests {
     }
 
     [Fact]
-    public void GetSpaceName_4x4LeftLowerMiddleSquare_ReturnsExpected() {
-        // 4x4 board: (row 2, col 0)
-        // 01 is bottom left, goes right-then-up.
-        // because this is more than 3x3 it will > 9 spaces so 2 digit.
+    public void GetSpaceName_4x4BottomLeftSpace_AsExpected() {
+        // 4x4 board: (row 3, col 0), uses letter-number format, bottom left space
         var board = new Board(4, 4, new MNKRuleset());
-        var code = board.GetSpaceName(0, 2);
-        code.Should().Be("05");
+        var code = board.GetSpaceName(0, 3);
+        code.Should().Be("A1");
     }
     #endregion
 
     #region TryGetCoordinatesFromSpaceName
     [Fact]
-    public void TryGetCoordinatesFromSpaceName_AsExpected() {
+    public void TryGetCoordinatesFrom3x3SpaceName_AsExpected() {
         var board = new Board(3, 3, new MNKRuleset());
         var ok = board.TryGetCoordinatesFromSpaceName("1", out var col, out var row);
         ok.Should().BeTrue();
@@ -102,11 +100,23 @@ public class BoardTests {
     }
 
     [Fact]
-    public void TryGetCoordinatesFromSpaceName_Invalid() {
+    public void TryGetCoordinatesFrom3x3SpaceName_Invalid() {
         var board = new Board(3, 3, new MNKRuleset());
         var ok = board.TryGetCoordinatesFromSpaceName("99", out _, out _);
         ok.Should().BeFalse();
     }
+
+    [Fact]
+    public void TryGetCoordinatesFrom4x4BottomLeftSpace_AsExpected() {
+        // 4x4 board: (row 3, col 0), uses letter-number format, bottom left space
+        var board = new Board(4, 4, new MNKRuleset());
+        var ok = board.TryGetCoordinatesFromSpaceName("A1", out var col, out var row);
+        ok.Should().BeTrue();
+        col.Should().Be(0);
+        row.Should().Be(3);
+    }
+
+
     #endregion
 
     #region MakeKnownToPlayer

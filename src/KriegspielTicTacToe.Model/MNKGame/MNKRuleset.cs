@@ -9,15 +9,22 @@ namespace KriegspielTicTacToe.Model.MNKGame;
 public record MNKRuleset(sbyte? ScoringLength = null, bool IsBoardDoneWhenScored = false)
 : BoardRuleset() {
     public static Template.BoardBuilder CreateBoardBuilder(
-        sbyte Width,
-        sbyte Height,
-        sbyte? ScoringLength = null,
-        bool IsBoardDoneWhenScored = false
+        sbyte width,
+        sbyte height,
+        sbyte? scoringLength = null,
+        bool isBoardDoneWhenScored = false
     ) {
+        if (width > 26) {
+            throw new ArgumentException("The board size limit is 26x26.", nameof(width));
+        }
+        if (height > 26) {
+            throw new ArgumentException("The board size limit is 26x26.", nameof(height));
+        }
+        
         return new Template.BoardBuilder(
-            Width,
-            Height,
-            new MNKRuleset(ScoringLength, IsBoardDoneWhenScored)
+            width,
+            height,
+            new MNKRuleset(scoringLength, isBoardDoneWhenScored)
         ) { };
     }
 

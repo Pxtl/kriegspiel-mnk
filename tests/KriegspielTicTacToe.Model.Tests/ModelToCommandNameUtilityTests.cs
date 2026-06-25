@@ -457,10 +457,10 @@ public class ModelToCommandNameUtilityTests {
         );
 
         var expected = new string[4,4] {
-            {"13", "14", "15", "16"},
-            {"09", "10", "11", "12"},
-            {"05", "06", "07", "08"},
-            {"01", "02", "03", "04"}
+            {"A4", "B4", "C4", "D4"},
+            {"A3", "B3", "C3", "D3"},
+            {"A2", "B2", "C2", "D2"},
+            {"A1", "B1", "C1", "D1"}
         };
 
         for(sbyte row = 0; row < expected.GetLength(0); row += 1) {

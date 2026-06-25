@@ -65,9 +65,17 @@ public record Board
             + 1; //1-based
     }
 
+    private bool IsSpaceNamingNumpadLayout => SpaceCount < 10;
+
     public string GetSpaceName(sbyte col, sbyte row)
-    => GetSpaceNameAsInt(col, row)
-        .ToString(new string('0', SpaceNameLength)); //zero-pad;
+    => IsSpaceNamingNumpadLayout
+        ? GetSpaceNameAsInt(col, row).ToString()
+        : (
+            // letter component.  Can be only length 1 because max board size is 26.
+            ((char)('A' + col)).ToString()
+            // number component, zero-padded to SpaceNameLength without the letter component.
+            + (RowCount - row).ToString(new string('0', SpaceNameLength - 1)) 
+        );
 
     /// <summary>
     /// For the given space index code, find the coordinates.  Uses a "Try"
@@ -147,7 +155,9 @@ public record Board
     /// </summary>
     [JsonIgnore()]
     public int SpaceNameLength
-    => SpaceCount.ToString().Length;
+    => IsSpaceNamingNumpadLayout
+        ? 1
+        : (int)Math.Log10(RowCount) + 2; //(int)Math.Log10(RowCount) is number of digits - 1.  Add 2, 1 for digits, 1 for letter.
 
     /// <summary>
     /// Returns true if the board is full.
