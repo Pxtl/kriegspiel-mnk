@@ -72,19 +72,19 @@ public class BoardTests {
 
     #region GetSpaceName
     [Fact]
-    public void GetSpaceName_TopicCorner_ReturnsPositive() {
-        // top-left corner (row 0, col 2) in 3x3
+    public void GetSpaceName_TopRightCorner_ReturnsSeven() {
+        // top-right corner (row 0, col 2) in 3x3
         var board = new Board(3, 3, new MNKRuleset());
-        var code = board.GetSpaceNameAsInt(2, 0);
-        code.Should().BeGreaterThan(0);
+        var code = board.GetSpaceName(2, 0);
+        code.Should().Be("9");
     }
 
     [Fact]
-    public void GetSpaceName_RightOfTopicCorner_ReturnsPositive() {
+    public void GetSpaceName_RightMiddleSquare_ReturnsPositive() {
         // 3x3 board: (row 1, col 2)
         var board = new Board(3, 3, new MNKRuleset());
-        var code = board.GetSpaceNameAsInt(2, 1);
-        code.Should().BeGreaterThan(0);
+        var code = board.GetSpaceName(2, 1);
+        code.Should().Be("6");
     }
     #endregion
 

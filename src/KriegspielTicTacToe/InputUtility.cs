@@ -97,7 +97,7 @@ internal static class InputUtility {
             }
             //user has reached length of longest command, no matches.
             Console.Out.WriteLine();
-            Console.Out.WriteLine("Invalid command.");
+            Console.Out.WriteLine($"Invalid command: {sb}");
             return new Unknown();   
         }
     }

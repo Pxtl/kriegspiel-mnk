@@ -7,7 +7,8 @@ using OneOf;
 namespace KriegspielTicTacToe.Model;
 
 /// <summary>
-/// JSON-serializable model object for a single tic-tac-toe board.
+/// JSON-serializable model object for a single tic-tac-toe board. Columns are
+/// left-to-right, rows are top-to-bottom.
 /// </summary>
 public record Board
 : IBoard {
@@ -53,8 +54,7 @@ public record Board
     /// <summary>
     /// For the given space on the board, generate the space's name.
     /// </summary>
-    public int GetSpaceNameAsInt(sbyte col, sbyte row)
-    {
+    public int GetSpaceNameAsInt(sbyte col, sbyte row) {
         //aims for basic 3x3, but larger if needed
         //7 8 9
         //4 5 6
@@ -65,13 +65,16 @@ public record Board
             + 1; //1-based
     }
 
+    public string GetSpaceName(sbyte col, sbyte row)
+    => GetSpaceNameAsInt(col, row)
+        .ToString(new string('0', SpaceNameLength)); //zero-pad;
+
     /// <summary>
     /// For the given space index code, find the coordinates.  Uses a "Try"
     /// signature so that it shall return false if the given spaceindex is not
     /// on the board at all.
     /// </summary>
-    public bool TryGetCoordinatesFromSpaceNameAsInt(int spaceName, out sbyte resultCol, out sbyte resultRow)
-    {
+    public bool TryGetCoordinatesFromSpaceNameAsInt(int spaceName, out sbyte resultCol, out sbyte resultRow) {
         //brute-force search
         //todo: smarter algo
         for (sbyte col = 0; col < ColumnCount; col += 1) {
@@ -114,7 +117,7 @@ public record Board
     [JsonIgnore()]
     public IEnumerable<string> SpaceNames
     => BoardAsSpaceViewEnumerable()
-        .Select(s => GetSpaceNameAsInt(s.Col, s.Row).ToString());
+        .Select(s => GetSpaceName(s.Col, s.Row)); //zero-pad.
     #endregion
 
     #region abstract and virtual properties
@@ -147,17 +150,23 @@ public record Board
     => SpaceCount.ToString().Length;
 
     /// <summary>
-    /// Returns true if the game has ended in a tie.
+    /// Returns true if the board is full.
     /// </summary>
     [JsonIgnore()]
     public bool IsFull
     => BoardAsSpaceEnumerable().All(s => s.Mark != null);
 
+    /// <summary>
+    /// Returns true if the board is done and locked from further play.
+    /// </summary>
     [JsonIgnore()]
     public virtual bool IsDone
     => IsFull || Ruleset.IsDone(this);
     #endregion
 
+    /// <summary>
+    /// Returns true if a space is within an arbitrarily-sized board.
+    /// </summary>
     public bool IsSpaceInsideOfBoard((sbyte Col, sbyte Row) pos, (sbyte Col, sbyte Row) boardSize)
     => (pos.Col < boardSize.Col)
         && (pos.Row < boardSize.Row)

@@ -7,7 +7,7 @@ namespace KriegspielTicTacToe;
 /// <summary>
 /// Game logic implementation.
 /// </summary>
-internal static class GameLogic {
+internal static class ConsoleLoop {
     public static void RunGame(
         FileInfo sharedStateFilePath,
         GameState<MNKPlayAction> state,

@@ -118,7 +118,7 @@ public class Program {
             : OneOf<Player, LocalHotseatGame>.FromT0(new Player(JoinAsPlayer));
             
         if (StateFilePath != null && GameState != null) {
-            GameLogic.RunGame (
+            ConsoleLoop.RunGame (
                 StateFilePath!,
                 GameState!,
                 joinAsPlayerUnion

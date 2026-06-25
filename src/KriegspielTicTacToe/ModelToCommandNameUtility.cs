@@ -88,8 +88,7 @@ public static class ModelToCommandNameUtility {
             && gameView.CanTakeTurn
             && activeBoardIndex == boardIndex
         ) {
-            return boardView.GetSpaceNameAsInt(col, row)
-                .ToString(new string('0', boardView.SpaceNameLength)); //zero-pad
+            return boardView.GetSpaceName(col, row);
         } else {
             return (spaceView.Mark ?? "").PadLeft(boardView.SpaceNameLength);
         }

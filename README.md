@@ -1,13 +1,16 @@
 # kriegspiel-tictactoe
 
-A simple command-line implementation of Zach Weinersmith's proposed game 'Kriegspiel Tic Tac Toe'.
+A command-line implementation of kriegspiel and synchroneous [m,n,k
+games](https://en.wikipedia.org/wiki/M,n,k-game) such as Zach Weinersmith's
+proposed game 'Kriegspiel Tic Tac Toe'.
 
 see https://mastodon.social/@ZachWeinersmith/111890121393299096
 
 Basically, the idea is that it's blind tic-tac-toe where you can only see your
 opponent's spaces if you hit the same space.
 
-I (Pxtl) got carried away gold-plating, so there are 3 notable features:
+I (Pxtl) got carried away gold-plating, so this is now a generalized tool for
+command-line kriegspiel and synchronous m,n,k games.
 
 1. Arbitrary square board size.
 2. Arbitrary player count. Players must be unique single-character names.
@@ -25,51 +28,46 @@ but possibly dotnet runtime 10 will be sufficient.
 
 > `winget install dotnet-runtime-10`
 
-to run it in basic gameplay (traditional tic-tac-toe but Kriegspiel, hotseat
+to run it in basic gameplay from source (Weinersmith's Kriegspiel Tic-Tac-Toe, hotseat
 mode).
 
-> `dotnet run KriegspielTicTacToe`
-
-to see other options for play, run
-
-> `dotnet run KriegspielTicTacToe --?`
-
-note that dotnet-script will intercept all other variations like `-h` or
-`--help` or `-?`, WIP.  Alternately you can supply any garbage like 
-
-> `dotnet run KriegspielTicTacToe --justshowmethehelp`
-
-and it will insult you but show you the help.
+> `dotnet run --project ./kriegspiel-tictactoe/src/KriegspielTicTacToe -- game kriegspiel-tictactoe`
 
 ```
 Description:
-  This is a simple command-line implementation of Zach Weinersmith's proposed game 'Kriegspiel Tic Tac Toe'
+  Start a new game using a pre-defined game template.
 
 Usage:
-  KriegspielTicTacToe [options]
+  KriegspielTicTacToe game [command] [options]
 
 Options:
-  -f, --file <file>        Path to the json file where gamestate is stored.  Will be resumed automatically if you kill
-                           the game (ctrl-C).  Use a fileshare for network 
-                           multiplayer. [default: /home/pxtl/.config/KriegspielTicTacToe.json]
-  -F, --force              Force a new game instead of loading the game at the gamestate file.  Will replace gamestate 
-                           file.
-  -p, --players <players>  Players mark characters.  Provide them space-separated, eg '-p A B C X Y Z' for a 6-player
-                           game. [default: X|O]
+  -p, --players <players>  Players mark characters.  Provide them space-separated, eg '-p A B C X Y Z' for a 6-player game. [default: X|O]
   -r, --random             Randomize player order.
-  -z, --size <size>        Board size.  Default is 3x3. [default: 3]
-  -b, --boards <boards>    Number of boards. [default: 3]
-  -j, --join <join>        Join as given player char mark. Must match a mark in players list. Hotseat mode if not
-                           provided.
-  -y, --synchronous        Moves do not execute until all players in a round have taken a turn.  If two players move to
-                           the same square, that square becomes an impasse marker visible to all.
   -?, -h, --help           Show help and usage information
-  --version                Show version information
+  -f, --file <file>        Path to the json file where gamestate is stored.  Will be resumed automatically if you kill the game (ctrl-C). Use a fileshare for network multiplayer. [default: /home/pxtl/.config/KriegspielTicTacToe.json]
+  -j, --join <join>        Join as given player char mark. Must match a mark in players list. Hotseat mode if not provided.
+
+Commands:
+  kriegspiel-tictactoe  Zach Weinersmith's Kriegspiel Tic-Tac-Toe.
+  tictactoe             Basic simple tic-tac-toe.
 ```
 
-So, to start a simple 3-player hotseat game between Alice, Bob, and Carol on a 4x4 screen, the command would be
+to see the other commands to launch the game for play, run
 
-> `dotnet run KriegspielTicTacToe -p A B C --size 4`
+> `dotnet run --project ./kriegspiel-tictactoe/src/KriegspielTicTacToe -- -?`
+
+Command `game` is for predefined gametypes, `custom` for custom game, and `load`
+to load a previous game.  Each command can be called with a `-?` parameter to
+see its respective options.
+
+Alternately, if you build the dotnet executable file and place it so you can
+call it from elsewhere, you can skip the `dotnet run` formality and just run it
+directly.
+
+So, to start a simple 3-player hotseat game between Alice, Bob, and Carol on a
+4x4 screen, the command would be
+
+> `KriegspielTicTacToe custom -p A B C --boards 1 --size 4 --kriegspiel`
 
 Conversely, to start a multiplayer game with the default rules (2 players X and
 O on a 3x3 board) on a fileshare named `\\kosmos\storage` with random
