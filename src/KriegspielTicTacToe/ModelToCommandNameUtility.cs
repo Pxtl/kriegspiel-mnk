@@ -22,7 +22,7 @@ public static class ModelToCommandNameUtility {
         foreach (var player in availablePlayers) {
             // Check if mark is typeable (ASCII letter or digit)
             bool isTypeable = (player.Mark.Length == 1)
-                && Regex.IsMatch(player.Mark, "[a-zA-Z0-9]");
+                && Regex.IsMatch(player.Mark, "[ABCDEFGHJKLMNOPSTUVWXYZ1-9]", RegexOptions.IgnoreCase); //remove I, R, 0 (zero) and Q.  I and O for confusion, R and Q for command collisions.
 
             if (isTypeable)  {
                 // Typeable mark - use the mark itself

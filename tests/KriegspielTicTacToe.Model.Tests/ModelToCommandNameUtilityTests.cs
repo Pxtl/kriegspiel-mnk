@@ -172,7 +172,7 @@ public class ModelToCommandNameUtilityTests {
     [Fact]
     public void BuildPlayerToCommandNameMap_DigitsAreTypeable()
     {
-        var marks = new[] { "0", "1", "8", "9" };
+        var marks = new[] { "1", "8", "9" };
         var players = new List<Player>();
         foreach (var mark in marks) {
             players.Add(new Player(mark));

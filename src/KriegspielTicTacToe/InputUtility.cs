@@ -23,14 +23,14 @@ internal static class InputUtility {
 
     /// <summary>
     /// Works like <see cref="ReadCommandInput"/> but with the standard "r" for
-    /// retire command added.
+    /// retire command and "q" for quit added.
     /// </summary>
     /// <returns>
     /// The chosen command, in the casing listed in the `validCommands` list as
     /// a <see cref="Result{T}"/>, or <see cref="Unknown"/>.
     /// </returns>
     public static OneOf<Result<string>, Unknown> ReadCommandInputWithAddedStandardPlayerCommands(string prompt, IEnumerable<string> validCommands)
-        => ReadCommandInput(prompt, validCommands.Union(["r"]));
+        => ReadCommandInput(prompt, validCommands.Union(["r", "q"]));
 
     /// <summary>
     /// Works like <see cref="ReadCommandInput"/> but loop if an invalid command is provided.

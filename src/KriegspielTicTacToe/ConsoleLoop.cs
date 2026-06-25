@@ -130,17 +130,20 @@ internal static class ConsoleLoop {
                 var availableBoardCommands = gameView.BoardNames;
                 //TODO: Just make the 1st char of the command the board number.
                 var boardCommand = InputUtility.ReadCommandInputWithAddedStandardPlayerCommands(
-                    "Press numeric key(s) to pick a board, or 'r' to resign.",
+                    "Press numeric key(s) to pick a board, 'r' to resign, or 'q' to save game and quit.",
                     availableBoardCommands
                 );
                 boardCommand.Switch(
                     result => {
-                        if(result.Value == "r") {
+                        if("r".Equals(result.Value, StringComparison.OrdinalIgnoreCase)) {
                             currentPlayerIsDoneTurn = true;
                             using (var stateStorage = new StateStorage(sharedStateFilePath)) {
-                                gameView = new GameView(stateStorage.State, currentPlayer);
+                                gameView = stateStorage.State.GetView(currentPlayer);
                                 gameView.ResignPlayer();
                             }
+                        } else if ("q".Equals(result.Value, StringComparison.OrdinalIgnoreCase)) {
+                            Console.WriteLine("Exiting.  Use 'load' to resume later.");
+                            Environment.Exit(0);
                         } else {
                             gameView.SelectBoard(result.Value).Switch(
                                 notFound => {
@@ -174,7 +177,7 @@ internal static class ConsoleLoop {
                     BoardRenderer.DrawBoards(gameView, boardIndex, maxRenderWidth: Console.BufferWidth)
                 );
                 var spaceCommand = InputUtility.ReadCommandInputWithAddedStandardPlayerCommands(
-                    "Press numeric key(s) to play a space, or 'r' to resign.",
+                    "Press numeric key(s) to play a space, or 'r' to resign, or 'q' to save game and quit.",
                     state.Boards[boardIndex].SpaceNames
                 );
                 spaceCommand.Switch(
@@ -182,9 +185,13 @@ internal static class ConsoleLoop {
                         using (var stateStorage = new StateStorage(sharedStateFilePath)) {
                             state = stateStorage.State;
                             gameView = state.GetView(currentPlayer);
-                            if(result.Value == "r") {
+                            if("r".Equals(result.Value, StringComparison.OrdinalIgnoreCase)) {
                                 currentPlayerIsDoneTurn = true;
+                                gameView = new GameView(stateStorage.State, currentPlayer);
                                 gameView.ResignPlayer();
+                            } else if ("q".Equals(result.Value, StringComparison.OrdinalIgnoreCase)) {
+                                Console.WriteLine("Exiting.  Use 'load' to resume later.");
+                                Environment.Exit(0);
                             } else {
                                 var playAction = MNKPlayAction.Create(state, boardIndex, result.Value, currentPlayer);
                                 playAction.Attempt(state).Switch(
@@ -255,13 +262,17 @@ internal static class ConsoleLoop {
             var validCommands = ((IEnumerable<string>)["q"]).Concat(commandToPlayer.Keys);
             var commandResult = InputUtility.ReadCommandInputLoop(prompt, validCommands);
 
-            if (commandResult == "q") {
-                Console.Out.WriteLine("Quitting.");
-                return new GameIsOver();
+            if ("q".Equals(commandResult, StringComparison.OrdinalIgnoreCase)) {
+                Quit();
             } else {
                 return new Result<Player>(commandToPlayer[commandResult]);
             }
         }
+    }
+
+    private static void Quit() {
+        Console.WriteLine("Quitting.  Use 'load' to resume later.");
+        Environment.Exit(0);        
     }
 }
 

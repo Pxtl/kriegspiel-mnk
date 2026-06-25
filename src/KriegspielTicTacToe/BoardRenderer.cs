@@ -36,7 +36,7 @@ public static class BoardRenderer {
     }
 
     public static int GetBoardRenderWidth(BoardView board)
-        => board.ColumnCount * 4 + 3;
+        => board.ColumnCount * 4 + 3; // 4 chars per-space, plus 2 for indent, 
 
     /// <summary>
     /// Helper function to draw a border row of the board.
@@ -49,7 +49,7 @@ public static class BoardRenderer {
         string midBarString, 
         string endBarString, 
         string spanString, 
-        bool showBoardCode,
+        bool showBoardName,
         int maxRenderWidth,
         StringBuilder sb
     ) {
@@ -63,10 +63,10 @@ public static class BoardRenderer {
                 break;
             }
 
-            sb.Append(showBoardCode
+            sb.Append(showBoardName
                 ? (board.IsDone
                     ? " ✓" //board is done so just show a checkmark.
-                    : $" {boardIndex + 1}" //key-index to choose it
+                    : (boardIndex + 1).ToString().PadLeft(2) //key-index to choose it
                 ) : "  " //blank space
             );
 
@@ -106,6 +106,7 @@ public static class BoardRenderer {
                 break;
             }
 
+            //indentation before start of board, provides space for board number.
             sb.Append("  ");
 
             for(sbyte col = 0; col < board.ColumnCount; col += 1) {
