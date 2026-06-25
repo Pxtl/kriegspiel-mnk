@@ -70,7 +70,7 @@ internal static class ConsoleLoop {
                         if (hasStateChanged) {
                             var gameView = state.GetView(currentPlayer);
                             Console.Out.WriteLine(
-                                BoardRenderer.DrawBoards(gameView, activeBoardIndex: null, maxRenderWidth: Console.BufferWidth)
+                                BoardRenderer.DrawBoards(gameView, maxRenderWidth: Console.BufferWidth)
                             );
                         }
 
@@ -114,109 +114,54 @@ internal static class ConsoleLoop {
 
     private static bool DoPlayerTurnLoop(GameState<MNKPlayAction> state, Player currentPlayer, string sharedStateFilePath) {
         var currentPlayerIsDoneTurn = false;
-        while (!currentPlayerIsDoneTurn)
-        {
+        while (!currentPlayerIsDoneTurn) {
             Console.Out.WriteLine(state.GameStateText);
             Console.Out.WriteLine($"Player {currentPlayer.Mark}, take your turn.");
-           
-            var activeBoardIndex = state.SingleActiveBoardIndex;
 
-            if (!activeBoardIndex.HasValue) {
-                var gameView = state.GetView(currentPlayer);
-                //player picks a board.
-                Console.Out.WriteLine(
-                    BoardRenderer.DrawBoards(gameView, activeBoardIndex, maxRenderWidth: Console.BufferWidth)
-                );
-                var availableBoardCommands = gameView.BoardNames;
-                //TODO: Just make the 1st char of the command the board number.
-                var boardCommand = InputUtility.ReadCommandInputWithAddedStandardPlayerCommands(
-                    "Press numeric key(s) to pick a board, 'r' to resign, or 'q' to save game and quit.",
-                    availableBoardCommands
-                );
-                boardCommand.Switch(
-                    result => {
+            var gameView = state.GetView(currentPlayer);
+            Console.Out.WriteLine(
+                BoardRenderer.DrawBoards(gameView, maxRenderWidth: Console.BufferWidth)
+            );
+            var spaceCommand = InputUtility.ReadCommandInputWithAddedStandardPlayerCommands(
+                "Press numeric key(s) to play a space, or 'r' to resign, or 'q' to save game and quit.",
+                gameView.SpaceNames
+            );
+            spaceCommand.Switch(
+                result => {
+                    using (var stateStorage = new StateStorage(sharedStateFilePath)) {
+                        state = stateStorage.State;
+                        gameView = state.GetView(currentPlayer);
                         if("r".Equals(result.Value, StringComparison.OrdinalIgnoreCase)) {
                             currentPlayerIsDoneTurn = true;
-                            using (var stateStorage = new StateStorage(sharedStateFilePath)) {
-                                gameView = stateStorage.State.GetView(currentPlayer);
-                                gameView.ResignPlayer();
-                            }
+                            gameView = new GameView(stateStorage.State, currentPlayer);
+                            gameView.ResignPlayer();
                         } else if ("q".Equals(result.Value, StringComparison.OrdinalIgnoreCase)) {
                             Console.WriteLine("Exiting.  Use 'load' to resume later.");
                             Environment.Exit(0);
                         } else {
-                            gameView.SelectBoard(result.Value).Switch(
-                                notFound => {
-                                    currentPlayerIsDoneTurn = false;
-                                    Console.WriteLine($"That is not a valid board.  Please pick an incomplete board.");
+                            var playAction = MNKPlayAction.Create(state, result.Value, currentPlayer);
+                            playAction.Attempt(state).Switch(
+                                isLegalToQueue => {
+                                    state.Enqueue(playAction);
+                                    currentPlayerIsDoneTurn = true;
+                                    Console.WriteLine($"Played space {result.Value}");
+                                }, 
+                                newlyLearned => {
+                                    currentPlayerIsDoneTurn = true;
+                                    Console.WriteLine($"Space already filled: '{newlyLearned.Mark}'.");
                                 },
-                                boardIsDone => {
+                                alreadyPlayed => {
                                     currentPlayerIsDoneTurn = false;
-                                    Console.WriteLine($"That board is already complete.");
-                                },
-                                boardIndex => {
-                                    activeBoardIndex = boardIndex.Value;
+                                    Console.Out.WriteLine($"Invalid space, that space is already known to player {currentPlayer}");
                                 }
                             );
                         }
-                    },
-                    unknown => {
-                        currentPlayerIsDoneTurn = false;
                     }
-                );
-            }
-
-            // activeBoardIndex will be null if the user has to retry or the
-            // user is resigning. In both cases we skip asking them about
-            // which space they wish to play.
-            if (activeBoardIndex.HasValue) {
-                var boardIndex = activeBoardIndex.Value;
-                var boardCode = boardIndex + 1;
-                var gameView = state.GetView(currentPlayer);
-                Console.Out.WriteLine(
-                    BoardRenderer.DrawBoards(gameView, boardIndex, maxRenderWidth: Console.BufferWidth)
-                );
-                var spaceCommand = InputUtility.ReadCommandInputWithAddedStandardPlayerCommands(
-                    "Press numeric key(s) to play a space, or 'r' to resign, or 'q' to save game and quit.",
-                    state.Boards[boardIndex].SpaceNames
-                );
-                spaceCommand.Switch(
-                    result => {
-                        using (var stateStorage = new StateStorage(sharedStateFilePath)) {
-                            state = stateStorage.State;
-                            gameView = state.GetView(currentPlayer);
-                            if("r".Equals(result.Value, StringComparison.OrdinalIgnoreCase)) {
-                                currentPlayerIsDoneTurn = true;
-                                gameView = new GameView(stateStorage.State, currentPlayer);
-                                gameView.ResignPlayer();
-                            } else if ("q".Equals(result.Value, StringComparison.OrdinalIgnoreCase)) {
-                                Console.WriteLine("Exiting.  Use 'load' to resume later.");
-                                Environment.Exit(0);
-                            } else {
-                                var playAction = MNKPlayAction.Create(state, boardIndex, result.Value, currentPlayer);
-                                playAction.Attempt(state).Switch(
-                                    isLegalToQueue => {
-                                        state.Enqueue(playAction);
-                                        currentPlayerIsDoneTurn = true;
-                                        Console.WriteLine($"Played on board {boardCode}, space {result.Value}");
-                                    }, 
-                                    newlyLearned => {
-                                        currentPlayerIsDoneTurn = true;
-                                        Console.WriteLine($"Space already filled: '{newlyLearned.Mark}'.");
-                                    },
-                                    alreadyPlayed => {
-                                        currentPlayerIsDoneTurn = false;
-                                        Console.Out.WriteLine($"Invalid space, that space is already known to player {currentPlayer}");
-                                    }
-                                );
-                            }
-                        }
-                    },
-                    unknown => {
-                        currentPlayerIsDoneTurn = false;
-                    }
-                );
-            }
+                },
+                unknown => {
+                    currentPlayerIsDoneTurn = false;
+                }
+            );
         }
 
         return currentPlayerIsDoneTurn;
@@ -267,6 +212,64 @@ internal static class ConsoleLoop {
             } else {
                 return new Result<Player>(commandToPlayer[commandResult]);
             }
+        }
+    }
+
+    internal static int? DoBoardSelectorLoop(string sharedStateFilePath, GameState<MNKPlayAction> state, Player currentPlayer, out bool currentPlayerIsDoneTurn) {
+        if (!state.SingleActiveBoardIndex.HasValue) {
+            var isDoneTurn = false;
+            while(true) {
+                var gameView = state.GetView(currentPlayer);
+                //player picks a board.
+                Console.Out.WriteLine(
+                    BoardRenderer.DrawBoards(gameView, maxRenderWidth: Console.BufferWidth)
+                );
+                var availableBoardCommands = gameView.BoardNames;
+                //TODO: Just make the 1st char of the command the board number.
+                var boardCommand = InputUtility.ReadCommandInputWithAddedStandardPlayerCommands(
+                    "Press numeric key(s) to pick a board, 'r' to resign, or 'q' to save game and quit.",
+                    availableBoardCommands
+                );
+                int? activeBoardIndex = null;
+                boardCommand.Switch(
+                    result => {
+                        if("r".Equals(result.Value, StringComparison.OrdinalIgnoreCase)) {
+                            isDoneTurn = true;
+                            using (var stateStorage = new StateStorage(sharedStateFilePath)) {
+                                gameView = stateStorage.State.GetView(currentPlayer);
+                                gameView.ResignPlayer();
+                            }
+                        } else if ("q".Equals(result.Value, StringComparison.OrdinalIgnoreCase)) {
+                            Console.WriteLine("Exiting.  Use 'load' to resume later.");
+                            Environment.Exit(0);
+                        } else {
+                            gameView.SelectBoard(result.Value).Switch(
+                                notFound => {
+                                    isDoneTurn = false;
+                                    Console.WriteLine($"That is not a valid board.  Please pick an incomplete board.");
+                                },
+                                boardIsDone => {
+                                    isDoneTurn = false;
+                                    Console.WriteLine($"That board is already complete.");
+                                },
+                                boardIndex => {
+                                    activeBoardIndex = boardIndex.Value;
+                                }
+                            );
+                        }
+                    },
+                    unknown => {
+                        isDoneTurn = false;
+                    }
+                );
+                if (activeBoardIndex.HasValue) {
+                    currentPlayerIsDoneTurn = isDoneTurn;
+                    return activeBoardIndex;
+                }
+            }
+        } else {
+            currentPlayerIsDoneTurn = false;
+            return state.SingleActiveBoardIndex.Value;
         }
     }
 

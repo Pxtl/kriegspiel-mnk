@@ -84,12 +84,14 @@ public record MNKPlayAction
 
     public static MNKPlayAction Create(
         IGameState gameState,
-        sbyte boardIndex,
         string spaceName,
         Player player
     ) {
-        var board = gameState.Boards[boardIndex];
-        if (board.TryGetCoordinatesFromSpaceName(spaceName, out var col, out var row)) {
+        if (gameState.GetView(player: null).TryGetCoordinatesFromSpaceName(spaceName, out var boardName, out var col, out var row)) {
+            var boardIndex = ModelToCommandNameUtility.GetBoardIndexByName(boardName, gameState.Boards.Count).Match(
+                notFound => throw new InvalidOperationException("Attempted to create an Action with an invalid Space Name"),
+                result => result.Value
+            );
             return new MNKPlayAction(boardIndex, col, row, player);
         } else {
             throw new KeyNotFoundException("That is not a valid space name for this board.");

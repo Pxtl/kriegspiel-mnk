@@ -24,17 +24,24 @@ where TAction : PlayAction {
         }
 
         PlayManager = gameTemplate.PlayManagerFactory.Create(players);
-        Boards = gameTemplate.ConstructBoards();
+        Boards = gameTemplate.CreateBoards();
         Initialize();
+
+        if (Boards.Count > 1 && Boards.Any(b => b.RowCount > 9)) {
+            throw new ApplicationException(
+                "Cannot start game. Current board-renderer does not support boards that are taller than 9 spaces in multi-board games."
+            );
+        }
+
         if (!gameTemplate.LegalPlayerCounts.Contains(players.Length)) {
-            throw new ArgumentException(
+            throw new ApplicationException(
                 "Cannot start game. This game only supports the following player-counts: "
                     + string.Join(", ", gameTemplate.LegalPlayerCounts)
                     + Environment.NewLine
-                    + $"You have provided {players.Length} player(s).",
-                nameof(players)
+                    + $"You have provided {players.Length} player(s)."
             );
         }
+
         gameTemplate.InitializeGame(this);
     }
     #endregion
@@ -62,7 +69,7 @@ where TAction : PlayAction {
     }
     #endregion
 
-    public GameView GetView(Player player)
+    public GameView GetView(Player? player)
     => new(this, player);
 
     #region GameState

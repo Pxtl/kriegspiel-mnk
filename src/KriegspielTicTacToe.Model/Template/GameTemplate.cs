@@ -12,7 +12,7 @@ public abstract record GameTemplate()
     [JsonProperty(TypeNameHandling = TypeNameHandling.All)]
 	public PlayManagerFactory PlayManagerFactory { get; init; } = RoundRobinPlayManagerFactory.Instance;
 
-	public abstract IReadOnlyList<Board> ConstructBoards();
+	public abstract IReadOnlyList<Board> CreateBoards();
 
 	public abstract void InitializeGame(IGameState gameState);
 }

@@ -242,15 +242,6 @@ public class ModelToCommandNameUtilityTests {
     
     #region GetSpaceCommandName
     [Fact]
-    public void GetSpaceCommandName_NullValueThrows() {
-        var action = () => {
-            var 
-            _ = ModelToCommandNameUtility.GetSpaceCommandName(null!, 0, null, 0, 0);
-        };
-        action.Should().Throw<ArgumentNullException>();
-    }
-
-    [Fact]
     public void GetSpaceCommandName_Empty3x3BoardYourTurnIsAsExpected() {
         var players = new Player[] {new ("X"), new ("O")};
         var gameState = new GameState<MNKPlayAction>(
@@ -260,14 +251,14 @@ public class ModelToCommandNameUtilityTests {
         );
 
         var expected = new string[3,3] {
-            {"7", "8", "9"},
-            {"4", "5", "6"},
-            {"1", "2", "3"}
+            {"17", "18", "19"},
+            {"14", "15", "16"},
+            {"11", "12", "13"}
         };
 
         for(sbyte row = 0; row < expected.GetLength(0); row += 1) {
             for(sbyte col = 0; col < expected.GetLength(0); col += 1) {
-                var actual = ModelToCommandNameUtility.GetSpaceCommandName(new GameView(gameState, players[0]), 0, 0, col, row);
+                var actual = ModelToCommandNameUtility.GetSpaceCommandName(new GameView(gameState, players[0]), 0, col, row);
                 actual.Should().Be(expected[row, col]);
             }
         }
@@ -286,28 +277,7 @@ public class ModelToCommandNameUtilityTests {
 
         for(sbyte row = 0; row < gameState.Boards[0].RowCount; row += 1) {
             for(sbyte col = 0; col < gameState.Boards[0].RowCount; col += 1) {
-                var actual = ModelToCommandNameUtility.GetSpaceCommandName(new GameView(gameState, players[1]), 0, 0, col, row);
-                actual.Should().Be(expected);
-            }
-        }
-    }
-
-    [Fact]
-    public void GetSpaceCommandName_Empty3x3BoardYourTurnWrongBoardIsBlank() {
-        var players = new Player[] {new ("X"), new ("O")};
-        var gameState = new GameState<MNKPlayAction>(
-            players,
-            new MNKTemplate([MNKRuleset.CreateBoardBuilder(3, 3), MNKRuleset.CreateBoardBuilder(3, 3)], isSynchronousMode: false, isKriegspiel: true),
-            isRandomPlayerOrder: false
-        );
-
-        var expected = "";
-        sbyte renderBoardIndex = 0;
-        sbyte activeBoardIndex = 1;
-
-        for(sbyte row = 0; row < gameState.Boards[0].RowCount; row += 1) {
-            for(sbyte col = 0; col < gameState.Boards[0].RowCount; col += 1) {
-                var actual = ModelToCommandNameUtility.GetSpaceCommandName(new GameView(gameState, players[0]), renderBoardIndex, activeBoardIndex, col, row);
+                var actual = ModelToCommandNameUtility.GetSpaceCommandName(new GameView(gameState, players[1]), 0, col, row);
                 actual.Should().Be(expected);
             }
         }
@@ -336,7 +306,7 @@ public class ModelToCommandNameUtilityTests {
 
         for(sbyte row = 0; row < expected.GetLength(0); row += 1) {
             for(sbyte col = 0; col < expected.GetLength(0); col += 1) {
-                var actual = ModelToCommandNameUtility.GetSpaceCommandName(new GameView(gameState, players[0]), 0, 0, col, row);
+                var actual = ModelToCommandNameUtility.GetSpaceCommandName(new GameView(gameState, players[0]), 0, col, row);
                 actual.Should().Be(expected[row, col]);
             }
         }
@@ -364,7 +334,7 @@ public class ModelToCommandNameUtilityTests {
 
         for(sbyte row = 0; row < expected.GetLength(0); row += 1) {
             for(sbyte col = 0; col < expected.GetLength(0); col += 1) {
-                var actual = ModelToCommandNameUtility.GetSpaceCommandName(new GameView(gameState, playerO), 0, 0, col, row);
+                var actual = ModelToCommandNameUtility.GetSpaceCommandName(new GameView(gameState, playerO), 0, col, row);
                 actual.Should().Be(expected[row, col]);
             }
         }
@@ -386,7 +356,7 @@ public class ModelToCommandNameUtilityTests {
         gameState.PlayManager.EndRound(out _);
 
         var expected = players[0].Mark;
-        var actual = ModelToCommandNameUtility.GetSpaceCommandName(new GameView(gameState, players[1]), 0, 0, col: 1, row: 1);
+        var actual = ModelToCommandNameUtility.GetSpaceCommandName(new GameView(gameState, players[1]), 0, col: 1, row: 1);
         actual.Should().Be(expected);
     }
 
@@ -406,7 +376,7 @@ public class ModelToCommandNameUtilityTests {
         gameState.PlayManager.EndRound(out _);
 
         var expected = "";
-        var actual = ModelToCommandNameUtility.GetSpaceCommandName(new GameView(gameState, players[1]), 0, 0, col: 1, row: 1);
+        var actual = ModelToCommandNameUtility.GetSpaceCommandName(new GameView(gameState, players[1]), 0, col: 1, row: 1);
         actual.Should().Be(expected);
     }
 
@@ -441,7 +411,7 @@ public class ModelToCommandNameUtilityTests {
 
         for(sbyte row = 0; row < expected.GetLength(0); row += 1) {
             for(sbyte col = 0; col < expected.GetLength(0); col += 1) {
-                var actual = ModelToCommandNameUtility.GetSpaceCommandName(new GameView(gameState, null), 0, 0, col, row);
+                var actual = ModelToCommandNameUtility.GetSpaceCommandName(new GameView(gameState, null), 0, col, row);
                 actual.Should().Be(expected[row, col].Trim());
             }
         }
@@ -465,7 +435,7 @@ public class ModelToCommandNameUtilityTests {
 
         for(sbyte row = 0; row < expected.GetLength(0); row += 1) {
             for(sbyte col = 0; col < expected.GetLength(0); col += 1) {
-                var actual = ModelToCommandNameUtility.GetSpaceCommandName(new GameView(gameState, players[0]), 0, 0, col, row);
+                var actual = ModelToCommandNameUtility.GetSpaceCommandName(new GameView(gameState, players[0]), 0, col, row);
                 actual.Should().Be(expected[row, col]);
             }
         }

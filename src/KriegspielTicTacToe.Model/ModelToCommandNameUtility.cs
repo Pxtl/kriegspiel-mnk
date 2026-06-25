@@ -1,7 +1,9 @@
-namespace KriegspielTicTacToe;
+namespace KriegspielTicTacToe.Model;
 
 using System.Text.RegularExpressions;
 using KriegspielTicTacToe.Model.Views;
+using OneOf;
+using OneOf.Types;
 
 /// <summary>
 /// Static class for functions that calculate a typeable key for a given thing.
@@ -72,7 +74,7 @@ public static class ModelToCommandNameUtility {
     /// they have created or discovered.  If the player is the
     /// current-turn-player, then the space index codes will be displayed.
     /// </summary>
-    public static string GetSpaceCommandName(GameView gameView, sbyte boardIndex, sbyte? activeBoardIndex, sbyte col, sbyte row) {
+    public static string GetSpaceCommandName(GameView gameView, sbyte boardIndex, sbyte col, sbyte row) {
         ArgumentNullException.ThrowIfNull(gameView);
         var player = gameView.Player;
         player = gameView.IsGameOver //show for all players if the game is over.
@@ -86,11 +88,18 @@ public static class ModelToCommandNameUtility {
             string.IsNullOrWhiteSpace(spaceView.Mark) 
             && !boardView.IsDone 
             && gameView.CanTakeTurn
-            && activeBoardIndex == boardIndex
         ) {
-            return boardView.GetSpaceName(col, row);
+            return boardView.GetSpaceName(gameView, col, row);
         } else {
             return spaceView.Mark ?? "";
         }
+    }
+
+    public static OneOf<NotFound, Result<sbyte>> GetBoardIndexByName(string boardName, int boardsCount) {
+        var boardNameAsSbyte = sbyte.Parse(boardName);
+        sbyte boardIndex = boardNameAsSbyte.Minus1();
+        return (boardIndex >= 0 && boardIndex < boardsCount) 
+            ? new Result<sbyte>(boardIndex)
+            : new NotFound();
     }
 }

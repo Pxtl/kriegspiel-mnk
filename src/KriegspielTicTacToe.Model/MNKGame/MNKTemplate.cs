@@ -44,13 +44,13 @@ public record MNKTemplate
 
     public bool IsKriegspiel { get; init; }
 
-    public override IReadOnlyList<Board> ConstructBoards()
+    public override IReadOnlyList<Board> CreateBoards()
     => BoardBuilders.Select(b => new Board(b)).ToList();
 
     public override void InitializeGame(IGameState gameState) {
         if (!IsKriegspiel) {
             foreach (var board in gameState.Boards) {
-                foreach (var space in board.BoardAsSpaceEnumerable()) {
+                foreach (var space in board.AsSpaceEnumerable()) {
                     foreach(var player in gameState.PlayManager.Players) {
                         space.MakeKnownToPlayer(player.Mark);
                     }

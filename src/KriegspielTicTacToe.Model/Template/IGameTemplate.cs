@@ -6,6 +6,6 @@ public interface IGameTemplate {
 	IEnumerable<int> LegalPlayerCounts { get; }
     PlayManagerFactory PlayManagerFactory { get;}
     
-    IReadOnlyList<Board> ConstructBoards();
+    IReadOnlyList<Board> CreateBoards();
 	void InitializeGame (IGameState gameState);
 }

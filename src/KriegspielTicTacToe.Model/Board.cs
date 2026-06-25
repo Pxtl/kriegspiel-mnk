@@ -51,59 +51,12 @@ public record Board
     #endregion
 
     #region Methods
-    /// <summary>
-    /// For the given space on the board, generate the space's name.
-    /// </summary>
-    private int GetSpaceNameAsInt(sbyte col, sbyte row) {
-        //aims for basic 3x3, but larger if needed
-        //7 8 9
-        //4 5 6
-        //1 2 3
-        return Spaces.GetLength(1) * (Spaces.GetLength(0) - 1) //top-left
-            + col
-            - row * Spaces.GetLength(0)
-            + 1; //1-based
-    }
-
-    private bool IsSpaceNamingNumpadLayout => SpaceCount < 10;
-
-    public string GetSpaceName(sbyte col, sbyte row)
-    => IsSpaceNamingNumpadLayout
-        ? GetSpaceNameAsInt(col, row).ToString()
-        : (
-            // letter component.  Can be only length 1 because max board size is 26.
-            ((char)('A' + col)).ToString()
-            // number component, zero-padded to SpaceNameLength without the letter component.
-            + (RowCount - row).ToString(new string('0', SpaceNameLength - 1)) 
-        );
-
-    /// <summary>
-    /// For the given space index code, find the coordinates.  Uses a "Try"
-    /// signature so that it shall return false if the given spaceindex is not
-    /// on the board at all.
-    /// </summary>
-    public bool TryGetCoordinatesFromSpaceName(string spaceName, out sbyte resultCol, out sbyte resultRow) {
-        //brute-force search
-        //todo: smarter algo
-        for (sbyte col = 0; col < ColumnCount; col += 1) {
-            for (sbyte row = 0; row < RowCount; row += 1) {
-                if (GetSpaceName(col, row).Equals(spaceName, StringComparison.OrdinalIgnoreCase)) {
-                    resultCol = col;
-                    resultRow = row;
-                    return true;
-                }
-            }
-        }
-        // if not found
-        resultCol = resultRow = -1;
-        return false;
-    }
 
     /// <summary>
     /// Get all of the spaces on the board as a big enumerable that you can
     /// foreach across.
     /// </summary>
-    public IEnumerable<SpaceView> BoardAsSpaceViewEnumerable(Player? player) {
+    public IEnumerable<SpaceView> AsSpaceViewEnumerable(Player? player) {
         for (sbyte col = 0; col < Spaces.GetLength(0); col += 1) {
             for (sbyte row = 0; row < Spaces.GetLength(1); row += 1) {
                 yield return new SpaceView(Spaces[col, row], player, col, row);
@@ -111,7 +64,7 @@ public record Board
         }
     }
 
-    public IEnumerable<Space> BoardAsSpaceEnumerable() {
+    public IEnumerable<Space> AsSpaceEnumerable() {
         for (sbyte col = 0; col < Spaces.GetLength(0); col += 1) {
             for (sbyte row = 0; row < Spaces.GetLength(1); row += 1) {
                 yield return Spaces[col, row];
@@ -119,13 +72,8 @@ public record Board
         }
     }
 
-    public IEnumerable<SpaceView> BoardAsSpaceViewEnumerable()
-    => BoardAsSpaceViewEnumerable(player: null);
-
-    [JsonIgnore()]
-    public IEnumerable<string> SpaceNames
-    => BoardAsSpaceViewEnumerable()
-        .Select(s => GetSpaceName(s.Col, s.Row)); //zero-pad.
+    public IEnumerable<SpaceView> AsSpaceViewEnumerable()
+    => AsSpaceViewEnumerable(player: null);
     #endregion
 
     #region abstract and virtual properties
@@ -150,21 +98,11 @@ public record Board
     => Spaces.GetLength(0) * Spaces.GetLength(1);
 
     /// <summary>
-    /// Get how many digits the users will have to type in to type in a
-    /// space-name.
-    /// </summary>
-    [JsonIgnore()]
-    public int SpaceNameLength
-    => IsSpaceNamingNumpadLayout
-        ? 1
-        : (int)Math.Log10(RowCount) + 2; //(int)Math.Log10(RowCount) is number of digits - 1.  Add 2, 1 for digits, 1 for letter.
-
-    /// <summary>
     /// Returns true if the board is full.
     /// </summary>
     [JsonIgnore()]
     public bool IsFull
-    => BoardAsSpaceEnumerable().All(s => s.Mark != null);
+    => AsSpaceEnumerable().All(s => s.Mark != null);
 
     /// <summary>
     /// Returns true if the board is done and locked from further play.

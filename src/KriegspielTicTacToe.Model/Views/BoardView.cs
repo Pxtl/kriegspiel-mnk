@@ -8,18 +8,22 @@ public record BoardView
     }
     #region data properties
     public sbyte BoardIndex { get; init; }
+    public string BoardName => (BoardIndex + 1).ToString();
     #endregion
 
     #region calculated properties
 	public bool IsDone => Value.IsDone;
-	public int SpaceNameLength => Value.SpaceNameLength;
     public sbyte RowCount => Value.RowCount;
     public sbyte ColumnCount => Value.ColumnCount;
-    #endregion
+	public int SpaceCount => Value.SpaceCount;
+	#endregion
 
-    public string GetSpaceName(sbyte col, sbyte row)
-    => Value.GetSpaceName(col, row);
+	public string GetSpaceName(GameView gameView, sbyte col, sbyte row)
+    => gameView.GetSpaceName(BoardName, col, row);
 
 	public SpaceView GetSpaceView(sbyte col, sbyte row)
     => new SpaceView(Value.Spaces[col, row], Player, col, row);
+
+    public IEnumerable<SpaceView> AsSpaceViewEnumerable()
+    => Value.AsSpaceViewEnumerable();
 }

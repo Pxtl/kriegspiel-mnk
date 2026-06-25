@@ -1,3 +1,4 @@
+using KriegspielTicTacToe.Model.Views;
 using OneOf;
 using OneOf.Types;
 
@@ -17,6 +18,8 @@ public interface IGameState {
     [JsonProperty(TypeNameHandling = TypeNameHandling.All)]
     IReadOnlyList<Board> Boards { get; }
     #endregion
+
+    GameView GetView(Player? player);
 
     Board GetBoardByIndex(sbyte boardIndex);
     

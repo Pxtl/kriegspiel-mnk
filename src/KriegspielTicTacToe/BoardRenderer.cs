@@ -9,7 +9,6 @@ namespace KriegspielTicTacToe;
 public static class BoardRenderer {
     public static string DrawBoards(
         GameView gameView,
-        sbyte? activeBoardIndex,
         int maxRenderWidth = int.MaxValue
     ) {
         bool doShowBoardCode = gameView.BoardsCount > 1;
@@ -26,7 +25,7 @@ public static class BoardRenderer {
                 if(row > 0) {
                     DrawBorderRow(gameView, nextDrawnBoardIndex, "├", "┼", "┤", "───", false, maxRenderWidth, sb);
                 }
-                DrawBoardSpacesRow(gameView, nextDrawnBoardIndex, "│", activeBoardIndex, row, boardRenderWidth, maxRenderWidth, sb);
+                DrawBoardSpacesRow(gameView, nextDrawnBoardIndex, "│", row, boardRenderWidth, maxRenderWidth, sb);
             }
             nextDrawnBoardIndex = DrawBorderRow(gameView, nextDrawnBoardIndex, "└", "┴", "┘", "───", false, maxRenderWidth, sb);
         }
@@ -89,7 +88,6 @@ public static class BoardRenderer {
         GameView gameView, 
         sbyte startBoardIndex,
         string borderBarString,
-        sbyte? activeBoardIndex,
         sbyte rowIndex,
         int boardRenderWidth,
         int maxRenderWidth,
@@ -110,7 +108,7 @@ public static class BoardRenderer {
             sb.Append("  ");
 
             for(sbyte col = 0; col < board.ColumnCount; col += 1) {
-                var body = ModelToCommandNameUtility.GetSpaceCommandName(gameView, boardIndex, activeBoardIndex, col, rowIndex);
+                var body = ModelToCommandNameUtility.GetSpaceCommandName(gameView, boardIndex, col, rowIndex);
                 DrawSpaceBody(body, borderBarString, sb);
             }
             sb.Append(borderBarString);

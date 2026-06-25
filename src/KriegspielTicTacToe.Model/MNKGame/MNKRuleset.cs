@@ -44,7 +44,7 @@ public record MNKRuleset(sbyte? ScoringLength = null, bool IsBoardDoneWhenScored
             diagonalScoringLength = ScoringLength.Value;
         }
             
-        foreach (var spaceEnumerator in board.BoardAsSpaceViewEnumerable()) {
+        foreach (var spaceEnumerator in board.AsSpaceViewEnumerable()) {
             string? lineOwnerMark = spaceEnumerator.Mark;
             if(lineOwnerMark != null) {
                 var lineOwnerPlayer = new Player(lineOwnerMark);
