@@ -87,19 +87,9 @@ public record MNKPlayAction
         sbyte boardIndex,
         string spaceName,
         Player player
-    ) => Create(gameState, boardIndex, int.Parse(spaceName), player);
-        
-    public static MNKPlayAction Create(
-        IGameState gameState,
-        sbyte boardIndex,
-        int spaceNameAsInt,
-        Player player
     ) {
-        if (spaceNameAsInt <= 0) {
-            throw new KeyNotFoundException("That is not a valid space name for this board.");
-        }
         var board = gameState.Boards[boardIndex];
-        if (board.TryGetCoordinatesFromSpaceNameAsInt(spaceNameAsInt, out var col, out var row)) {
+        if (board.TryGetCoordinatesFromSpaceName(spaceName, out var col, out var row)) {
             return new MNKPlayAction(boardIndex, col, row, player);
         } else {
             throw new KeyNotFoundException("That is not a valid space name for this board.");

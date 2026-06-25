@@ -20,6 +20,6 @@ public interface IBoard {
 
 	IEnumerable<SpaceView> BoardAsSpaceViewEnumerable(Player player);
 	IEnumerable<SpaceView> BoardAsSpaceViewEnumerable();
-	int GetSpaceNameAsInt(sbyte col, sbyte row);
-	bool TryGetCoordinatesFromSpaceNameAsInt(int spaceName, out sbyte resultCol, out sbyte resultRow);
+	string GetSpaceName(sbyte col, sbyte row);
+	bool TryGetCoordinatesFromSpaceName(string spaceName, out sbyte resultCol, out sbyte resultRow);
 }

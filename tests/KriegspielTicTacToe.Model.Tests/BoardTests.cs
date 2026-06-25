@@ -95,7 +95,7 @@ public class BoardTests {
     [Fact]
     public void TryGetCoordinatesFromSpaceName_Valid() {
         var board = new Board(3, 3, new MNKRuleset());
-        var ok = board.TryGetCoordinatesFromSpaceNameAsInt(1, out var col, out var row);
+        var ok = board.TryGetCoordinatesFromSpaceName("1", out var col, out var row);
         ok.Should().BeTrue();
         col.Should().BeLessThan(board.ColumnCount);
         row.Should().BeLessThan(board.RowCount);
@@ -104,7 +104,7 @@ public class BoardTests {
     [Fact]
     public void TryGetCoordinatesFromSpaceName_Invalid() {
         var board = new Board(3, 3, new MNKRuleset());
-        var ok = board.TryGetCoordinatesFromSpaceNameAsInt(99, out _, out _);
+        var ok = board.TryGetCoordinatesFromSpaceName("99", out _, out _);
         ok.Should().BeFalse();
     }
     #endregion

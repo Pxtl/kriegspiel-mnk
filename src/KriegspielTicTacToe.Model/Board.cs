@@ -54,7 +54,7 @@ public record Board
     /// <summary>
     /// For the given space on the board, generate the space's name.
     /// </summary>
-    public int GetSpaceNameAsInt(sbyte col, sbyte row) {
+    private int GetSpaceNameAsInt(sbyte col, sbyte row) {
         //aims for basic 3x3, but larger if needed
         //7 8 9
         //4 5 6
@@ -74,12 +74,12 @@ public record Board
     /// signature so that it shall return false if the given spaceindex is not
     /// on the board at all.
     /// </summary>
-    public bool TryGetCoordinatesFromSpaceNameAsInt(int spaceName, out sbyte resultCol, out sbyte resultRow) {
+    public bool TryGetCoordinatesFromSpaceName(string spaceName, out sbyte resultCol, out sbyte resultRow) {
         //brute-force search
         //todo: smarter algo
         for (sbyte col = 0; col < ColumnCount; col += 1) {
             for (sbyte row = 0; row < RowCount; row += 1) {
-                if (GetSpaceNameAsInt(col, row) == spaceName) {
+                if (GetSpaceName(col, row).Equals(spaceName, StringComparison.OrdinalIgnoreCase)) {
                     resultCol = col;
                     resultRow = row;
                     return true;
