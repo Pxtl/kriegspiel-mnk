@@ -16,7 +16,7 @@ public class RoundRobinPlayManager
     [JsonIgnore()]
     public override string GameStateText
         => PlayersAvailableForTurn.Count() > 0 
-        ? $"Player {PlayersAvailableForTurn.First().Mark} turn."
+        ? $"Round-robin play. Current player is {PlayersAvailableForTurn.First().Mark}."
         : "Round over.";
 
     protected override void EndedRound(out bool hasStateChanged) {

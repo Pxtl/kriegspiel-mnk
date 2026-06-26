@@ -244,7 +244,7 @@ public class ModelToCommandNameUtilityTests {
     [Fact]
     public void GetSpaceCommandName_Empty3x3BoardYourTurnIsAsExpected() {
         var players = new Player[] {new ("X"), new ("O")};
-        var gameState = new GameState<MNKPlayAction>(
+        var gameState = new GameState(
             players,
             new MNKTemplate([MNKRuleset.CreateBoardBuilder(3, 3), MNKRuleset.CreateBoardBuilder(3, 3)], isSynchronousMode: false, isKriegspiel: true),
             isRandomPlayerOrder: false
@@ -267,7 +267,7 @@ public class ModelToCommandNameUtilityTests {
     [Fact]
     public void GetSpaceCommandName_Empty3x3BoardNotYourTurnIsBlank() {
         var players = new Player[] {new ("X"), new ("O")};
-        var gameState = new GameState<MNKPlayAction>(
+        var gameState = new GameState(
             players,
             new MNKTemplate([MNKRuleset.CreateBoardBuilder(3, 3), MNKRuleset.CreateBoardBuilder(3, 3)], isSynchronousMode: false, isKriegspiel: true),
             isRandomPlayerOrder: false
@@ -286,16 +286,13 @@ public class ModelToCommandNameUtilityTests {
     [Fact]
     public void GetSpaceCommandName_SecondRound3x3BoardYourTurnIsAsExpected() {
         var players = new Player[] {new ("X"), new ("O")};
-        var gameState = new GameState<MNKPlayAction>(
+        var gameState = new GameState(
             players,
             new MNKTemplate([MNKRuleset.CreateBoardBuilder(3, 3)], isSynchronousMode: false, isKriegspiel: true),
             isRandomPlayerOrder: false
         );
-
-        gameState.Enqueue(new MNKPlayAction(0, 1, 1, players[0]));
-        gameState.PlayManager.EndTurn(players[0], out _);
-        gameState.Enqueue(new MNKPlayAction(0, 1, 1, players[1]));
-        gameState.PlayManager.EndTurn(players[1], out _);
+        gameState.GetView(players[0]).Attempt(new MNKAction(0, 1, 1));
+        gameState.GetView(players[1]).Attempt(new MNKAction(0, 1, 1));
         gameState.PlayManager.EndRound(out _);
 
         var expected = new string[3,3] {
@@ -317,14 +314,13 @@ public class ModelToCommandNameUtilityTests {
         var players = new Player[] {new ("X"), new ("O")};
         var playerX = players[0];
         var playerO = players[1];
-        var gameState = new GameState<MNKPlayAction>(
+        var gameState = new GameState(
             players,
             new MNKTemplate([MNKRuleset.CreateBoardBuilder(3, 3)], isSynchronousMode: false, isKriegspiel: false),
             isRandomPlayerOrder: false
         );
 
-        gameState.Enqueue(new MNKPlayAction(0, 1, 1, playerX));
-        gameState.PlayManager.EndTurn(playerX, out _);
+        gameState.GetView(playerX).Attempt(new MNKAction(0, 1, 1));
 
         var expected = new string[3,3] {
             {"7", "8", "9"},
@@ -343,16 +339,14 @@ public class ModelToCommandNameUtilityTests {
     [Fact]
     public void GetSpaceCommandName_MoveSameSpaceCanSeeRevealedSpace() {
         var players = new Player[] {new ("X"), new ("O")};
-        var gameState = new GameState<MNKPlayAction>(
+        var gameState = new GameState(
             players,
             new MNKTemplate([MNKRuleset.CreateBoardBuilder(3, 3)], isSynchronousMode: false, isKriegspiel: true),
             isRandomPlayerOrder: false
         );
         //round 1
-        gameState.Enqueue(new MNKPlayAction(0, 1, 1, players[0]));
-        gameState.PlayManager.EndTurn(players[0], out _);
-        gameState.Enqueue(new MNKPlayAction(0, 1, 1, players[1]));
-        gameState.PlayManager.EndTurn(players[1], out _);
+        gameState.GetView(players[0]).Attempt(new MNKAction(0, 1, 1));
+        gameState.GetView(players[1]).Attempt(new MNKAction(0, 1, 1));
         gameState.PlayManager.EndRound(out _);
 
         var expected = players[0].Mark;
@@ -363,16 +357,14 @@ public class ModelToCommandNameUtilityTests {
     [Fact]
     public void GetSpaceCommandName_MoveDifferentSpaceCantSeeOtherPlayer() {
         var players = new Player[] {new ("X"), new ("O")};
-        var gameState = new GameState<MNKPlayAction>(
+        var gameState = new GameState(
             players,
             new MNKTemplate([MNKRuleset.CreateBoardBuilder(3, 3)], isSynchronousMode: false, isKriegspiel: true),
             isRandomPlayerOrder: false
         );
         //round 1
-        gameState.Enqueue(new MNKPlayAction(0, 1, 1, players[0]));
-        gameState.PlayManager.EndTurn(players[0], out _);
-        gameState.Enqueue(new MNKPlayAction(0, 0, 0, players[1]));
-        gameState.PlayManager.EndTurn(players[1], out _);
+        gameState.GetView(players[0]).Attempt(new MNKAction(0, 1, 1));
+        gameState.GetView(players[1]).Attempt(new MNKAction(0, 0, 0));
         gameState.PlayManager.EndRound(out _);
 
         var expected = "";
@@ -383,24 +375,20 @@ public class ModelToCommandNameUtilityTests {
     [Fact]
     public void GetSpaceCommandName_ThirdRound3x3SpectatorViewIsAsExpected() {
         var players = new Player[] {new ("X"), new ("O")};
-        var gameState = new GameState<MNKPlayAction>(
+        var gameState = new GameState(
             players,
             new MNKTemplate([MNKRuleset.CreateBoardBuilder(3, 3)], isSynchronousMode: false, isKriegspiel: true),
             isRandomPlayerOrder: false
         );
 
         //round 1
-        gameState.Enqueue(new MNKPlayAction(0, 1, 1, players[0]));
-        gameState.PlayManager.EndTurn(players[0], out _);
-        gameState.Enqueue(new MNKPlayAction(0, 1, 1, players[1]));
-        gameState.PlayManager.EndTurn(players[1], out _);
+        gameState.GetView(players[0]).Attempt(new MNKAction(0, 1, 1));
+        gameState.GetView(players[1]).Attempt(new MNKAction(0, 1, 1));
         gameState.PlayManager.EndRound(out _);
 
         //round 2
-        gameState.Enqueue(new MNKPlayAction(0, 0, 0, players[0]));
-        gameState.PlayManager.EndTurn(players[0], out _);
-        gameState.Enqueue(new MNKPlayAction(0, 2, 2, players[1]));
-        gameState.PlayManager.EndTurn(players[1], out _);
+        gameState.GetView(players[0]).Attempt(new MNKAction(0, 0, 0));
+        gameState.GetView(players[1]).Attempt(new MNKAction(0, 2, 2));
         gameState.PlayManager.EndRound(out _);
 
         var expected = new string[3,3] {
@@ -420,7 +408,7 @@ public class ModelToCommandNameUtilityTests {
     [Fact]
     public void GetSpaceCommandName_Empty4x4BoardYourTurnIsAsExpected() {
         var players = new Player[] {new ("X"), new ("O")};
-        var gameState = new GameState<MNKPlayAction>(
+        var gameState = new GameState(
             players,
             new MNKTemplate([MNKRuleset.CreateBoardBuilder(4, 4)], isSynchronousMode: false, isKriegspiel: true),
             isRandomPlayerOrder: false

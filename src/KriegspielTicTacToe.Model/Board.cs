@@ -10,8 +10,7 @@ namespace KriegspielTicTacToe.Model;
 /// JSON-serializable model object for a single tic-tac-toe board. Columns are
 /// left-to-right, rows are top-to-bottom.
 /// </summary>
-public record Board
-: IBoard {
+public sealed record Board {
     #region constructors
     /// <summary>
     /// Default constructor creates a useless board.  Never uses this without
@@ -108,7 +107,7 @@ public record Board
     /// Returns true if the board is done and locked from further play.
     /// </summary>
     [JsonIgnore()]
-    public virtual bool IsDone
+    public bool IsDone
     => IsFull || Ruleset.IsDone(this);
     #endregion
 

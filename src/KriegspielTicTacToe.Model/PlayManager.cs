@@ -121,6 +121,6 @@ public abstract class PlayManager
     /// post-constructor so must be nullable.
     /// </summary>
     [JsonIgnore()]
-    public IPlayActionQueue? ActionQueue { get; internal set; }
+    public PlayActionQueue? ActionQueue { get; internal set; }
     #endregion
 }

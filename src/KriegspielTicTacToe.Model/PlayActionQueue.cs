@@ -5,16 +5,16 @@ namespace KriegspielTicTacToe.Model;
 // does not override Object.GetHashCode(). We arenot overriding GetHashCode
 // because that's for Dictionary keys and this is too mutable to be ever used
 // for that.
-public class PlayActionQueue<TPlayAction> : IPlayActionQueue
+public class PlayActionQueue : IPlayActionQueue {
 #pragma warning restore CS0659, CS0661
-where TPlayAction : PlayAction {
-    [JsonProperty(ItemTypeNameHandling = TypeNameHandling.All)]
-    public List<TPlayAction> Actions {get;private set;} = [];
+
+    [JsonProperty(ItemTypeNameHandling = TypeNameHandling.None)]
+    public List<PlayerAction> Actions {get;private set;} = [];
 
     [JsonIgnore()]
-    public GameState<TPlayAction>? GameState { get; internal set; }
+    public GameState? GameState { get; internal set; }
 
-    public void Add(TPlayAction action) {
+    public void Add(PlayerAction action) {
         Actions.Add(action);
     }
 
@@ -30,9 +30,12 @@ where TPlayAction : PlayAction {
             throw new InvalidOperationException("Must be initialized first.");
         }
                
-        foreach (var action in Actions) {            
-            if (Actions.Any(otherA => action.IsActionCollision(otherA))) {
-                action.DoActionCollision(GameState);
+        foreach (var action in Actions) {
+            var collisions = Actions
+                .Where(action.IsActionCollision)
+                .ToList();
+            if (collisions.Any()) {
+                action.DoActionCollision(GameState, collisions!);
             } else {
                 action.DoAction(GameState);
             }
@@ -49,17 +52,17 @@ where TPlayAction : PlayAction {
             return false;
         }
         
-        if (obj is PlayActionQueue<TPlayAction> otherBuffer) {
+        if (obj is PlayActionQueue otherBuffer) {
             return Actions.SequenceEqual(otherBuffer.Actions);
         } else {
             return false;
         }
     }
 
-    public static bool operator == (PlayActionQueue<TPlayAction>? a, PlayActionQueue<TPlayAction>? b)
+    public static bool operator == (PlayActionQueue? a, PlayActionQueue? b)
     => (a == null) && (b == null) || (a?.Equals(b) ?? false);
 
-    public static bool operator != (PlayActionQueue<TPlayAction>? a, PlayActionQueue<TPlayAction>? b)
+    public static bool operator != (PlayActionQueue? a, PlayActionQueue? b)
     => !(a == b);
     #endregion
 }

@@ -12,7 +12,7 @@ public class StateStorage : IDisposable {
         Formatting = Formatting.Indented,
         SerializationBinder = KnownTypesBinder.Instance
     };
-    public GameState<MNKPlayAction> State {get; private set;}
+    public GameState State {get; private set;}
     public string FilePath {get;}
     public static string GetLockFilePath(string filePath)
         => filePath + ".lock";
@@ -21,7 +21,7 @@ public class StateStorage : IDisposable {
         State = LoadState(FilePath, withLock:true);
     }
 
-    public StateStorage(string filePath, GameState<MNKPlayAction> state) {
+    public StateStorage(string filePath, GameState state) {
         FilePath = filePath;
         State = state;
         TouchFile(GetLockFilePath(FilePath));
@@ -43,7 +43,7 @@ public class StateStorage : IDisposable {
         );
     }
     
-    public static GameState<MNKPlayAction> LoadState(string filePath, bool withLock = false) {
+    public static GameState LoadState(string filePath, bool withLock = false) {
         int waitCount = 0;
         while (File.Exists(GetLockFilePath(filePath))) {
             if (waitCount == 0) {
@@ -58,11 +58,11 @@ public class StateStorage : IDisposable {
         }
 
         using var sr = new StreamReader(filePath);
-        var result = StringToState<GameState<MNKPlayAction>>(sr.ReadToEnd());
+        var result = StringToState<GameState>(sr.ReadToEnd());
         return result;
     }
 
-    public static void SaveState(GameState<MNKPlayAction> state, string filePath) {
+    public static void SaveState(GameState state, string filePath) {
         using var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None);
         using var writer = new StreamWriter(fileStream);
         writer.Write(StateToString(state));

@@ -7,5 +7,5 @@ public interface IGameTemplate {
     PlayManagerFactory PlayManagerFactory { get;}
     
     IReadOnlyList<Board> CreateBoards();
-	void InitializeGame (IGameState gameState);
+	void InitializeGame (GameState gameState);
 }

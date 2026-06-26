@@ -88,18 +88,8 @@ Use the `--synchronous` flag to enable synchronous mode.
 
 In synchronous mode:
 - All moves in a round are buffered until every player in the round takes their turn
-- If two players move to the same square in the same round, it becomes an impasse marker (I)
-- Impasse markers are visible to all players, cannot be used to win, and block all players from that square
-
-To enable synchronous mode:
-
-```bash
-# Start a synchronous 2-player game
-dotnet run KriegspielTicTacToe --synchronous
-
-# Start a synchronous 3-player game
-dotnet run KriegspielTicTacToe --synchronous -p A B C
-```
+- If two players move to the same square in the same round, it becomes an impasse marker (█)
+- Impasse markers cannot be used to win and block all players from that square
 
 See [Synchronous Mode Usage](doc/sync-mode-usage.md)
 

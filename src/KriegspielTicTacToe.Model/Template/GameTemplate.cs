@@ -14,5 +14,5 @@ public abstract record GameTemplate()
 
 	public abstract IReadOnlyList<Board> CreateBoards();
 
-	public abstract void InitializeGame(IGameState gameState);
+	public abstract void InitializeGame(GameState gameState);
 }

@@ -2,7 +2,10 @@
 
 ## Overview
 
-Kriegspiel Tic-Tac-Toe now supports a **synchronous mode** option. In synchronous mode, all players in a round have the opportunity to move, and their moves only become permanent after all players in that round have taken their turn.
+Kriegspiel Tic-Tac-Toe now supports a **synchronous mode** option. In
+synchronous mode, all players in a round have the opportunity to move at the
+same time, and their moves are only executed after all players in that round
+have taken their turn.
 
 ## Usage
 
@@ -10,16 +13,16 @@ Kriegspiel Tic-Tac-Toe now supports a **synchronous mode** option. In synchronou
 
 ```bash
 # Using the synchronous flag
-dotnet run KriegspielTicTacToe --synchronous -p X O --size 3
+KriegspielTicTacToe custom --synchronous -p X O --kriegspiel
 
 # Or using shorthand
-dotnet run KriegspielTicTacToe -y -p X O
+KriegspielTicTacToe custom -y -p X O -k
 ```
 
 ### Starting an Asynchronous (Default) Game
 
 ```bash
-dotnet run KriegspielTicTacToe -p X O
+KriegspielTicTacToe custom -p X O -k
 ```
 
 ## Behavior
@@ -27,11 +30,10 @@ dotnet run KriegspielTicTacToe -p X O
 ### Synchronous Mode
 
 1. **Buffering**: Moves made by each player in a round are buffered until all players have moved.
-2. **Impasse Markers**: If two players move to the same square in the same round, that square becomes an **impasse marker (█)** visible to all players.
+2. **Impasse Markers**: If two players move to the same square in the same round, that square becomes an **impasse marker (█)**.
 3. **Impasse Effects**:
    - The impasse marker cannot be used to complete a winning row
    - All players are blocked from playing that square
-   - The marker is visible to all players regardless of whether they've moved there
 
 ### Asynchronous Mode (Default)
 
@@ -96,15 +98,13 @@ The impasse marker '█' at [col=1, row=1] means:
 - Both X and O moved there this round
 - No one "wins" that space
 - The space is blocked for future play
-- The marker is visible to all players
 
 ## Options
 
-### `--synchronous` or `-s`
+### `--synchronous` or `-y`
 
 Enable synchronous mode. When combined with multiple players, this allows all players to make their moves before they become permanent.
 
 ## Notes
 
 - Synchronous mode is particularly useful for network multiplayer scenarios
-- Saved game files will work with both modes (round data is tracked automatically)

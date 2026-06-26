@@ -47,7 +47,7 @@ public record MNKTemplate
     public override IReadOnlyList<Board> CreateBoards()
     => BoardBuilders.Select(b => new Board(b)).ToList();
 
-    public override void InitializeGame(IGameState gameState) {
+    public override void InitializeGame(GameState gameState) {
         if (!IsKriegspiel) {
             foreach (var board in gameState.Boards) {
                 foreach (var space in board.AsSpaceEnumerable()) {

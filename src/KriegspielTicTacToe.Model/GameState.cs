@@ -4,8 +4,8 @@ using KriegspielTicTacToe.Model.Views;
 
 namespace KriegspielTicTacToe.Model;
 
-public record GameState<TAction> : IGameState
-where TAction : PlayAction {
+public record GameState
+: IGameState {
     #region Constructors
     public GameState() { 
         // unusable default values will probably get removed when members are
@@ -54,7 +54,7 @@ where TAction : PlayAction {
     public virtual IReadOnlyList<Board> Boards { get; init; }
 
     [JsonProperty(TypeNameHandling = TypeNameHandling.None)]
-    public PlayActionQueue<TAction> ActionQueue { get; init; } = new PlayActionQueue<TAction>();
+    public PlayActionQueue ActionQueue { get; init; } = new();
     #endregion
 
     #region Initializer
@@ -107,15 +107,16 @@ where TAction : PlayAction {
 
     [JsonIgnore()]
     public string GameStateText
-    => IsGameOver 
-        ? (Winners.Count() == 0
-            ? "Game over. Nobody wins."
-            : $"Game over. {string.Join(" and ", Winners)} win(s)."
+    => (
+            IsGameOver 
+            ? (Winners.Count() == 0
+                ? "Game over. Nobody wins."
+                : $"Game over. {string.Join(" and ", Winners)} win(s)."
+            ) 
+            : PlayManager.GameStateText
         )
-        : (PlayManager.GameStateText 
-            + Environment.NewLine
-            + ResignedPlayersText
-        );
+            + Environment.NewLine 
+            + ResignedPlayersText;
 
     [JsonIgnore()]
     public string ResignedPlayersText
@@ -148,10 +149,5 @@ where TAction : PlayAction {
     public Board GetBoardByIndex(sbyte boardIndex)
     => Boards[boardIndex];
 
-	public void Enqueue(TAction playAction) {
-		ActionQueue.Add(playAction);
-	}
 	#endregion
 }
-
-public struct BoardIsDone;

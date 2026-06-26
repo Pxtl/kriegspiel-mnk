@@ -6,7 +6,7 @@ public class BoardRendererTests {
     [Fact]
     public void DrawBoards_3x3_ReturnsBlankBoardGridString() {
         var boardBuilder = MNKRuleset.CreateBoardBuilder(3, 3);
-        var state = new GameState<MNKPlayAction>(
+        var state = new GameState(
             new[] { 'X', 'O' }.ToPlayersArray(),
             new MNKTemplate([ boardBuilder ], isSynchronousMode: false, isKriegspiel: true),
             isRandomPlayerOrder: false
@@ -35,15 +35,14 @@ public class BoardRendererTests {
     [Fact]
     public void DrawBoards_3x3WithOneMove_ReturnsBoardGridStringWithMove() {
         var boardBuilder = MNKRuleset.CreateBoardBuilder(3, 3);
-        var state = new GameState<MNKPlayAction>(
+        var state = new GameState(
             (new[] { 'X', 'O' }).ToPlayersArray(),
             new MNKTemplate([ boardBuilder ], isSynchronousMode: false, isKriegspiel: true),
             isRandomPlayerOrder: false
         );
         
         var currentPlayer = new Player("X");
-        state.Enqueue(new MNKPlayAction(0, 0, 0, currentPlayer));
-        state.PlayManager.EndTurn(currentPlayer, out var _);
+        state.GetView(currentPlayer).Attempt(new MNKAction(0, 0, 0));
         var expected = @"
   ┌───┬───┬───┐
   │ X │   │   │
@@ -66,7 +65,7 @@ public class BoardRendererTests {
     public void DrawBoards_3x3WithActiveBoard_ReturnBoardsWithSpaceCodesGridString() {
         var boardBuilder3x3 = MNKRuleset.CreateBoardBuilder(3, 3);
         
-        var state = new GameState<MNKPlayAction>(
+        var state = new GameState(
             (new[] { 'X', 'O' }).ToPlayersArray(),
             new MNKTemplate([ boardBuilder3x3 ], isSynchronousMode: false, isKriegspiel: true),
             isRandomPlayerOrder: false
@@ -96,19 +95,16 @@ public class BoardRendererTests {
     public void DrawBoards_3x3WithActiveBoardAndOneMove_ReturnBoardsWithSpaceCodesGridString() {
         var boardBuilder3x3 = MNKRuleset.CreateBoardBuilder(3, 3);
         
-        var state = new GameState<MNKPlayAction>(
+        var state = new GameState(
             (new[] { 'X', 'O' }).ToPlayersArray(),
             new MNKTemplate([ boardBuilder3x3 ], isSynchronousMode: false, isKriegspiel: true),
             isRandomPlayerOrder: false
         );
 
         var currentPlayer = new Player("X");
-        state.Enqueue(new MNKPlayAction(0, 1, 1, currentPlayer));
-        state.PlayManager.EndTurn(currentPlayer, out var _);
-        
+        state.GetView(currentPlayer).Attempt(new MNKAction(0, 1, 1));     
         var otherPlayer = new Player("O");
-        state.Enqueue(new MNKPlayAction(0, 0, 0, otherPlayer));
-        state.PlayManager.EndTurn(otherPlayer, out var _);
+        state.GetView(otherPlayer).Attempt(new MNKAction(0, 0, 0));
         state.PlayManager.EndRound(out var _);
 
         var actual = BoardRenderer.DrawBoards(new GameView(state, currentPlayer));
@@ -132,7 +128,7 @@ public class BoardRendererTests {
     [Fact]
     public void DrawBoards_MaxSizeReturnsBlankBoardGridString() {
         var boardBuilder = MNKRuleset.CreateBoardBuilder(26,26);
-        var state = new GameState<MNKPlayAction>(
+        var state = new GameState(
             (new[] { 'X', 'O' }).ToPlayersArray(),
             new MNKTemplate([ boardBuilder ], isSynchronousMode: false, isKriegspiel: true),
             isRandomPlayerOrder: false
@@ -207,7 +203,7 @@ public class BoardRendererTests {
     [Fact]
     public void DrawBoards_MaxSizeWithActiveBoard_ReturnBoardsWithSpaceCodesGridString() {
         var boardBuilder = MNKRuleset.CreateBoardBuilder(26, 26);
-        var state = new GameState<MNKPlayAction>(
+        var state = new GameState(
             (new[] { 'X', 'O' }).ToPlayersArray(),
             new MNKTemplate([ boardBuilder ], isSynchronousMode: false, isKriegspiel: true),
             isRandomPlayerOrder: false
@@ -282,7 +278,7 @@ public class BoardRendererTests {
     public void DrawBoards_3x3MultipleBoardsWithWrapping_ReturnWrappedBoardGridString() {
         var boardBuilder3x3 = MNKRuleset.CreateBoardBuilder(3, 3);
         
-        var state = new GameState<MNKPlayAction>(
+        var state = new GameState(
             (new[] { 'X', 'O' }).ToPlayersArray(),
             new MNKTemplate([ boardBuilder3x3, boardBuilder3x3, boardBuilder3x3 ], isSynchronousMode: false, isKriegspiel: true),
             isRandomPlayerOrder: false
@@ -320,7 +316,7 @@ public class BoardRendererTests {
     public void DrawBoards_3x3MultipleBoardsWithNarrowWrapping_ReturnWrappedBoardGridString() {
         var boardBuilder3x3 = MNKRuleset.CreateBoardBuilder(3, 3);
         
-        var state = new GameState<MNKPlayAction>(
+        var state = new GameState(
             (new[] { 'X', 'O' }).ToPlayersArray(),
             new MNKTemplate([ boardBuilder3x3, boardBuilder3x3, boardBuilder3x3 ], isSynchronousMode: false, isKriegspiel: true),
             isRandomPlayerOrder: false
@@ -365,7 +361,7 @@ public class BoardRendererTests {
     public void DrawBoards_3x3MultipleBoardsWithActiveBoard_ReturnBoardsWithSpaceCodesGridString() {
         var boardBuilder3x3 = MNKRuleset.CreateBoardBuilder(3, 3);
         
-        var state = new GameState<MNKPlayAction>(
+        var state = new GameState(
             (new[] { 'X', 'O' }).ToPlayersArray(),
             new MNKTemplate([ boardBuilder3x3, boardBuilder3x3, boardBuilder3x3 ], isSynchronousMode: false, isKriegspiel: true),
             isRandomPlayerOrder: false

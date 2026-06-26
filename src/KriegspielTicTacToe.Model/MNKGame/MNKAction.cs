@@ -7,18 +7,17 @@ namespace KriegspielTicTacToe.Model.MNKGame;
 /// <summary>
 /// A play action for an MNK game such as tic tac toe.  <see href="https://en.wikipedia.org/wiki/M,n,k-game">WP: MNK Game</see>
 /// </summary>
-public record MNKPlayAction
-: PlayAction {
+public record MNKAction
+: GameAction {
     [Obsolete("Default constructor is only used for deserialization.")]
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
-	public MNKPlayAction() : base() { }
+	public MNKAction() : base() { }
 #pragma warning restore CS8618
-	public MNKPlayAction(
+	public MNKAction(
         sbyte boardIndex,
         sbyte col,
-        sbyte row,
-        Player player
-    ) : base(player) {
+        sbyte row
+    ) : base() {
         BoardIndex = boardIndex;
         Col = col;
         Row = row;
@@ -30,45 +29,49 @@ public record MNKPlayAction
     [Required]
     public sbyte Row {get;init;}
  
-	public override void DoActionCollision(IGameState gameState) {
+	public override void DoActionCollision(GameState gameState, Player actionPlayer, IReadOnlyList<PlayerAction> collisions) {
         if (GetBoard(gameState).IsDone) {
             return;
         }
         var space = GetSpace(gameState);
 		space.Mark = "█";
-        foreach(var player in gameState.PlayManager.Players) {
-            space.MakeKnownToPlayer(player);    
+        foreach(var player in collisions.Select(c => c.Player)) {
+            space.MakeKnownToPlayer(player);
         }
 	}
 
-    protected Board GetBoard(IGameState gameState)
+    protected Board GetBoard(GameState gameState)
         => gameState.Boards[BoardIndex];
 
-    protected Space GetSpace(IGameState gameState)
+    protected Space GetSpace(GameState gameState)
         => GetBoard(gameState).Spaces[Col, Row];
 
-	public override bool IsActionCollision(PlayAction otherAction)
-    => otherAction is MNKPlayAction otherTicTacToeAction 
+	public override bool IsActionCollision(PlayerAction otherAction, Player actionPlayer)
+    => otherAction.GameAction is MNKAction otherTicTacToeAction 
         ? BoardIndex == otherTicTacToeAction.BoardIndex
             && Col == otherTicTacToeAction.Col
             && Row == otherTicTacToeAction.Row
-            && Player != otherTicTacToeAction.Player
+            && actionPlayer != otherAction.Player
         : throw new InvalidOperationException("Cannot compare different action types.");
 
-	public override OneOf<IsLegalToQueue, NewlyLearned, AlreadyPlayed> Attempt(IGameState gameState) {
+	public override IPlayActionResult Attempt(GameState gameState, Player actionPlayer) {
         var space = gameState.Boards[BoardIndex].Spaces[Col, Row];
         if (space.Mark == null) {
-            space.MakeKnownToPlayer(Player);
-            return new IsLegalToQueue();
-        } else if (space.IsKnownToPlayer(Player)) {
+            space.MakeKnownToPlayer(actionPlayer);
+            gameState.ActionQueue.Add(GetPlayerAction(actionPlayer));
+            gameState.PlayManager.EndTurn(actionPlayer, out var hasStateChanged);
+            var spaceName = gameState.GetView(actionPlayer).GetSpaceName(BoardIndex, Col, Row);
+            return new Enqueued(hasStateChanged, spaceName);
+        } else if (space.IsKnownToPlayer(actionPlayer)) {
             return new AlreadyPlayed();
         } else {
-            space.MakeKnownToPlayer(Player);
+            space.MakeKnownToPlayer(actionPlayer);
+            gameState.PlayManager.EndTurn(actionPlayer, out _);
             return new NewlyLearned(space.Mark);
         }
 	}
 
-	public override void DoAction(IGameState gameState)
+	public override void DoAction(GameState gameState, Player actionPlayer)
 	{
 		if (GetBoard(gameState).IsDone) {
             return;
@@ -76,23 +79,22 @@ public record MNKPlayAction
         var space = GetSpace(gameState);
 
         if (space.Mark == null) {
-            space.Mark = Player.Mark;
+            space.Mark = actionPlayer.Mark;
         }
             
-        space.MakeKnownToPlayer(Player);
+        space.MakeKnownToPlayer(actionPlayer);
 	}
 
-    public static MNKPlayAction Create(
-        IGameState gameState,
-        string spaceName,
-        Player player
+    public static GameAction Create(
+        GameState gameState,
+        string spaceName
     ) {
         if (gameState.GetView(player: null).TryGetCoordinatesFromSpaceName(spaceName, out var boardName, out var col, out var row)) {
             var boardIndex = ModelToCommandNameUtility.GetBoardIndexByName(boardName, gameState.Boards.Count).Match(
                 notFound => throw new InvalidOperationException("Attempted to create an Action with an invalid Space Name"),
                 result => result.Value
             );
-            return new MNKPlayAction(boardIndex, col, row, player);
+            return new MNKAction(boardIndex, col, row);
         } else {
             throw new KeyNotFoundException("That is not a valid space name for this board.");
         }

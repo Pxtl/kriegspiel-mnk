@@ -2,7 +2,7 @@ namespace KriegspielTicTacToe.Model.Tests;
 
 public class GameViewTests {
     private GameView CreateGameView(params BoardBuilder[] builders) {
-        var state = new GameState<MNKPlayAction>(
+        var state = new GameState(
             (new[] { 'X', 'O' }).ToPlayersArray(),
             new MNKTemplate(builders, isSynchronousMode: false, isKriegspiel: false),
             isRandomPlayerOrder: false

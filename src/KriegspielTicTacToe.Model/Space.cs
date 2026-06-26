@@ -3,7 +3,7 @@ namespace KriegspielTicTacToe.Model;
 /// <summary>
 /// class to represent a space on the board.
 /// </summary>
-public record Space {
+public sealed record Space {
     /// <summary>
     /// The current state of the space - null means available.
     /// '█' means it's an impasse (two players contested this space in same round).
@@ -30,7 +30,6 @@ public record Space {
     /// <summary>
     /// Get the display value of this space for the given player.
     /// Show always if the player is null.
-    /// Impasse marker '█' is visible to all players.
     /// </summary>
     public string ToString(Player? player)
         => (player == null || IsKnownToPlayer(player))

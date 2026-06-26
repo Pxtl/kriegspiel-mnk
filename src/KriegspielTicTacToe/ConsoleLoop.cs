@@ -10,7 +10,7 @@ namespace KriegspielTicTacToe;
 internal static class ConsoleLoop {
     public static void RunGame(
         FileInfo sharedStateFilePath,
-        GameState<MNKPlayAction> state,
+        GameState state,
         OneOf<Player, LocalHotseatGame> joinAsPlayer
     ) {
         StateStorage.SaveState(state, sharedStateFilePath.FullName);
@@ -56,24 +56,16 @@ internal static class ConsoleLoop {
             currentPlayerChosen.Switch(
                 playerResult => {
                     var currentPlayer = playerResult.Value;
-                    var currentPlayerIsDoneTurn = false;
-                    currentPlayerIsDoneTurn = DoPlayerTurnLoop(state, currentPlayer, sharedStateFilePath.FullName);
+                    DoPlayerTurnLoop(ref state, currentPlayer, sharedStateFilePath.FullName, out bool currentPlayerIsDoneTurn, out bool hasViewChanged);
 
                     if (currentPlayerIsDoneTurn) {
-                        var hasStateChanged = false;
-                        using (var stateStorage = new StateStorage(sharedStateFilePath.FullName)) {
-                            state = stateStorage.State;
-                            var gameView = state.GetView(currentPlayer);
-                            gameView.EndTurn(out hasStateChanged);
-                        }
-
-                        if (hasStateChanged) {
-                            var gameView = state.GetView(currentPlayer);
+                        if (hasViewChanged) {
                             Console.Out.WriteLine(
-                                BoardRenderer.DrawBoards(gameView, maxRenderWidth: Console.BufferWidth)
+                                BoardRenderer.DrawBoards(state.GetView(currentPlayer), maxRenderWidth: Console.BufferWidth)
                             );
                         }
 
+                        //execute round-end stuff.
                         if (state.PlayManager.IsRoundOver) {
                             var hasRoundStateChanged = false;
                             using (var stateStorage = new StateStorage(sharedStateFilePath.FullName)) {
@@ -81,24 +73,23 @@ internal static class ConsoleLoop {
                                 state.PlayManager.EndRound(out hasRoundStateChanged);
                             }
                             if (hasRoundStateChanged) {
-                                InputUtility.PauseAndPressAnyKey();
+                                InputUtility.PauseAndPressAnyKey("Round over.");
                                 Console.Clear();
                                 Console.Out.WriteLine(state.GameStateText);
                                 Console.Out.WriteLine("Executing synchronous moves.");
                             }
                         }
-
                         if (!state.IsGameOver) {
                             joinAsPlayer.Switch(
                                 player => { },
-                                localHotseatGame =>
-                                {
+                                localHotseatGame => {
                                     InputUtility.PauseAndPressAnyKey();
                                     Console.Clear();
                                 }
                             );
                         } else {
                             Console.Out.WriteLine(state.GameStateText);
+                            Console.Out.WriteLine(BoardRenderer.DrawBoards(state.GetView(null), maxRenderWidth: Console.BufferWidth));
                             isGameOver = true;
                         }
                     }
@@ -107,14 +98,15 @@ internal static class ConsoleLoop {
                     isGameOver = true;
                 }
             );                        
-        }        
+        }
+
         Thread.Sleep(1000);
         sharedStateFilePath.Delete();
     }
 
-    private static bool DoPlayerTurnLoop(GameState<MNKPlayAction> state, Player currentPlayer, string sharedStateFilePath) {
-        var currentPlayerIsDoneTurn = false;
-        while (!currentPlayerIsDoneTurn) {
+    private static void DoPlayerTurnLoop(ref GameState state, Player currentPlayer, string sharedStateFilePath, out bool currentPlayerIsDoneTurn, out bool isViewChanged) {
+        IPlayActionResult? playActionResult = null;
+        while (playActionResult == null || !playActionResult.IsTurnDone) {
             Console.Out.WriteLine(state.GameStateText);
             Console.Out.WriteLine($"Player {currentPlayer.Mark}, take your turn.");
 
@@ -126,45 +118,28 @@ internal static class ConsoleLoop {
                 "Press numeric key(s) to play a space, or 'r' to resign, or 'q' to save game and quit.",
                 gameView.SpaceNames
             );
-            spaceCommand.Switch(
-                result => {
-                    using (var stateStorage = new StateStorage(sharedStateFilePath)) {
-                        state = stateStorage.State;
-                        gameView = state.GetView(currentPlayer);
+            using (var stateStorage = new StateStorage(sharedStateFilePath)) {
+                state = stateStorage.State;
+                spaceCommand.Switch(
+                    result => {
+                        gameView = stateStorage.State.GetView(currentPlayer);
                         if("r".Equals(result.Value, StringComparison.OrdinalIgnoreCase)) {
-                            currentPlayerIsDoneTurn = true;
-                            gameView = new GameView(stateStorage.State, currentPlayer);
-                            gameView.ResignPlayer();
+                            playActionResult = gameView.ResignPlayer();
                         } else if ("q".Equals(result.Value, StringComparison.OrdinalIgnoreCase)) {
-                            Console.WriteLine("Exiting.  Use 'load' to resume later.");
-                            Environment.Exit(0);
+                            Quit();
                         } else {
-                            var playAction = MNKPlayAction.Create(state, result.Value, currentPlayer);
-                            playAction.Attempt(state).Switch(
-                                isLegalToQueue => {
-                                    state.Enqueue(playAction);
-                                    currentPlayerIsDoneTurn = true;
-                                    Console.WriteLine($"Played space {result.Value}");
-                                }, 
-                                newlyLearned => {
-                                    currentPlayerIsDoneTurn = true;
-                                    Console.WriteLine($"Space already filled: '{newlyLearned.Mark}'.");
-                                },
-                                alreadyPlayed => {
-                                    currentPlayerIsDoneTurn = false;
-                                    Console.Out.WriteLine($"Invalid space, that space is already known to player {currentPlayer}");
-                                }
-                            );
+                            var playerAction = MNKAction.Create(stateStorage.State, result.Value);
+                            playActionResult = gameView.Attempt(playerAction);
                         }
+                    },
+                    unknown => {
+                        playActionResult = null;
                     }
-                },
-                unknown => {
-                    currentPlayerIsDoneTurn = false;
-                }
-            );
+                );
+            }
         }
-
-        return currentPlayerIsDoneTurn;
+        isViewChanged = playActionResult.IsViewChanged;
+        currentPlayerIsDoneTurn = playActionResult.IsTurnDone;
     }
 
     internal static OneOf<Result<Player>, GameIsOver> DoPlayerChooserLoop(PlayManager playManager) {
@@ -215,10 +190,12 @@ internal static class ConsoleLoop {
         }
     }
 
-    internal static int? DoBoardSelectorLoop(string sharedStateFilePath, GameState<MNKPlayAction> state, Player currentPlayer, out bool currentPlayerIsDoneTurn) {
-        if (!state.SingleActiveBoardIndex.HasValue) {
-            var isDoneTurn = false;
-            while(true) {
+    internal static void DoBoardSelectorLoop(string sharedStateFilePath, GameState state, Player currentPlayer, out sbyte boardIndex) {
+        if (state.SingleActiveBoardIndex.HasValue) {
+            boardIndex = state.SingleActiveBoardIndex.Value;
+        } else {
+            BoardView? selectedBoard = null;
+            while(selectedBoard == null) {
                 var gameView = state.GetView(currentPlayer);
                 //player picks a board.
                 Console.Out.WriteLine(
@@ -230,47 +207,36 @@ internal static class ConsoleLoop {
                     "Press numeric key(s) to pick a board, 'r' to resign, or 'q' to save game and quit.",
                     availableBoardCommands
                 );
-                int? activeBoardIndex = null;
                 boardCommand.Switch(
                     result => {
                         if("r".Equals(result.Value, StringComparison.OrdinalIgnoreCase)) {
-                            isDoneTurn = true;
                             using (var stateStorage = new StateStorage(sharedStateFilePath)) {
                                 gameView = stateStorage.State.GetView(currentPlayer);
                                 gameView.ResignPlayer();
                             }
                         } else if ("q".Equals(result.Value, StringComparison.OrdinalIgnoreCase)) {
-                            Console.WriteLine("Exiting.  Use 'load' to resume later.");
-                            Environment.Exit(0);
+                            Quit();
                         } else {
                             gameView.SelectBoard(result.Value).Switch(
                                 notFound => {
-                                    isDoneTurn = false;
                                     Console.WriteLine($"That is not a valid board.  Please pick an incomplete board.");
                                 },
                                 boardIsDone => {
-                                    isDoneTurn = false;
                                     Console.WriteLine($"That board is already complete.");
                                 },
-                                boardIndex => {
-                                    activeBoardIndex = boardIndex.Value;
+                                boardViewResult => {
+                                    selectedBoard = boardViewResult.Value;
                                 }
                             );
                         }
                     },
                     unknown => {
-                        isDoneTurn = false;
+                        selectedBoard = null;
                     }
                 );
-                if (activeBoardIndex.HasValue) {
-                    currentPlayerIsDoneTurn = isDoneTurn;
-                    return activeBoardIndex;
-                }
             }
-        } else {
-            currentPlayerIsDoneTurn = false;
-            return state.SingleActiveBoardIndex.Value;
-        }
+            boardIndex = selectedBoard.BoardIndex;
+        } 
     }
 
     private static void Quit() {

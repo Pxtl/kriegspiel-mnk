@@ -30,7 +30,7 @@ public class PlayManagerTests {
 
     [Fact]
     public void GameStateConstructor_WithBoardsCreatesProperState() {
-        var state = new GameState<MNKPlayAction>(
+        var state = new GameState(
             [new Player("X"), new Player("O")],
             new MNKTemplate([MNKRuleset.CreateBoardBuilder(3, 3), MNKRuleset.CreateBoardBuilder(3, 3)], isSynchronousMode: false, isKriegspiel: true),
             isRandomPlayerOrder: false
@@ -44,7 +44,7 @@ public class PlayManagerTests {
 
     [Fact]
     public void Round_RoundIndexStartsAtZero() {
-        var state = new GameState<MNKPlayAction>(
+        var state = new GameState(
             [new Player("X"), new Player("O")],
             new MNKTemplate([MNKRuleset.CreateBoardBuilder(3, 3)], isSynchronousMode: false, isKriegspiel: true),
             isRandomPlayerOrder: false
@@ -54,7 +54,7 @@ public class PlayManagerTests {
 
     [Fact]
     public void EndTurn_AdvancesTurn() {
-        var state = new GameState<MNKPlayAction>(
+        var state = new GameState(
             [new Player("X"), new Player("O")],
             new MNKTemplate([MNKRuleset.CreateBoardBuilder(3, 3)], isSynchronousMode: false, isKriegspiel: true),
             isRandomPlayerOrder: false
@@ -66,7 +66,7 @@ public class PlayManagerTests {
 
     [Fact]
     public void EndTurn_EndRound_TracksRoundIndex() {
-        var state = new GameState<MNKPlayAction>(
+        var state = new GameState(
             [new Player("X"), new Player("O")],
             new MNKTemplate([MNKRuleset.CreateBoardBuilder(3, 3)], isSynchronousMode: false, isKriegspiel: true),
             isRandomPlayerOrder: false
@@ -83,7 +83,7 @@ public class PlayManagerTests {
 
     [Fact]
     public void RoundComplete_OnePlayerResigned() {
-        var state = new GameState<MNKPlayAction>(
+        var state = new GameState(
             [new Player("X"), new Player("O")],
             new MNKTemplate([MNKRuleset.CreateBoardBuilder(3, 3)], isSynchronousMode: false, isKriegspiel: true),
             isRandomPlayerOrder: false
@@ -99,7 +99,7 @@ public class PlayManagerTests {
 
     [Fact]
     public void RoundComplete_TwoPlayers() {
-        var state = new GameState<MNKPlayAction>(
+        var state = new GameState(
             [new Player("A"), new Player("B")],
             new MNKTemplate([MNKRuleset.CreateBoardBuilder(3, 3)], isSynchronousMode: true, isKriegspiel: true),
             isRandomPlayerOrder: false
@@ -113,7 +113,7 @@ public class PlayManagerTests {
 
     [Fact]
     public void RoundComplete_ThreePlayers() {
-        var state = new GameState<MNKPlayAction>(
+        var state = new GameState(
             [new Player("A"), new Player("B"), new Player("C")],
             new MNKTemplate([MNKRuleset.CreateBoardBuilder(3, 3)], isSynchronousMode: true, isKriegspiel: true),
             isRandomPlayerOrder: false
@@ -130,7 +130,7 @@ public class PlayManagerTests {
 
     [Fact]
     public void ResignPlayerInRoundRobinMode_OnlyNextPlayerCanTakeTurn() {
-        var state = new GameState<MNKPlayAction>(
+        var state = new GameState(
             [new Player("A"), new Player("B"), new Player("C")],
             new MNKTemplate([MNKRuleset.CreateBoardBuilder(3, 3)], isSynchronousMode: false, isKriegspiel: true),
             isRandomPlayerOrder: false
@@ -146,7 +146,7 @@ public class PlayManagerTests {
 
     [Fact]
     public void ActivePlayers_ExcludesResignedPlayers() {
-        var state = new GameState<MNKPlayAction>(
+        var state = new GameState(
             [new Player("A"), new Player("B"), new Player("C")],
             new MNKTemplate([MNKRuleset.CreateBoardBuilder(3, 3)], isSynchronousMode: false, isKriegspiel: true),
             isRandomPlayerOrder: false
@@ -159,7 +159,7 @@ public class PlayManagerTests {
 
     [Fact]
     public void ResignPlayer_AddsToResignedPlayersSet() {
-        var state = new GameState<MNKPlayAction>(
+        var state = new GameState(
             [new Player("A"), new Player("B"), new Player("C")],
             new MNKTemplate([MNKRuleset.CreateBoardBuilder(3, 3)], isSynchronousMode: false, isKriegspiel: true),
             isRandomPlayerOrder: false
@@ -171,7 +171,7 @@ public class PlayManagerTests {
 
     [Fact]
     public void ResignPlayer_SkipsResignedTurn() {
-        var state = new GameState<MNKPlayAction>(
+        var state = new GameState(
             [new Player("A"), new Player("B"), new Player("C")],
             new MNKTemplate([MNKRuleset.CreateBoardBuilder(3, 3)], isSynchronousMode: false, isKriegspiel: true),
             isRandomPlayerOrder: false
@@ -187,7 +187,7 @@ public class PlayManagerTests {
 
     [Fact]
     public void GameStateConstructor_3Players_FirstPlayerIs_A() {
-        var state = new GameState<MNKPlayAction>(
+        var state = new GameState(
             [new Player("A"), new Player("B"), new Player("C")],
             new MNKTemplate([MNKRuleset.CreateBoardBuilder(3, 3)], isSynchronousMode: false, isKriegspiel: true),
             isRandomPlayerOrder: false
@@ -198,7 +198,7 @@ public class PlayManagerTests {
 
     [Fact]
     public void GameStateConstructor_RandomPlayer() {
-        var state = new GameState<MNKPlayAction>(
+        var state = new GameState(
             [new Player("A"), new Player("B"), new Player("C")],
             new MNKTemplate([MNKRuleset.CreateBoardBuilder(3, 3)], isSynchronousMode: false, isKriegspiel: true),
             isRandomPlayerOrder: true
@@ -210,7 +210,7 @@ public class PlayManagerTests {
 
     [Fact]
     public void CanTakeTurn_AllAvailablePlayersSynchronousMode() {
-        var state = new GameState<MNKPlayAction>(
+        var state = new GameState(
             [new Player("A"), new Player("B"), new Player("C")],
             new MNKTemplate([MNKRuleset.CreateBoardBuilder(3, 3)], isSynchronousMode: true, isKriegspiel: true),
             isRandomPlayerOrder: false

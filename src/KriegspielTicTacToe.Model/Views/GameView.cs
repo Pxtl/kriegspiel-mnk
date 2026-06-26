@@ -3,10 +3,14 @@ using OneOf.Types;
 
 namespace KriegspielTicTacToe.Model.Views;
 
+/// <summary>
+/// Player-based wrapper for GameState that restricts the API only to things
+/// that a player can do and see.
+/// </summary>
 public record GameView
-: GameObjectView<IGameState> {
+: GameObjectView<GameState> {
     #region Constructors
-    public GameView(IGameState gameState, Player? player)
+    public GameView(GameState gameState, Player? player)
     : base(gameState, player) { }
     #endregion
 
@@ -28,11 +32,12 @@ public record GameView
     #endregion
 
     #region Player Actions
-	public void ResignPlayer() {
+	public Resigned ResignPlayer() {
         if (Player == null) {
             throw new InvalidOperationException($"{nameof(Player)} is null.");
         } else {
 		    Value.PlayManager.ResignPlayer(Player);
+            return new Resigned(Player);
         }
 	}
 
@@ -44,12 +49,19 @@ public record GameView
         }
 	}
 
-    public OneOf<NotFound, BoardIsDone, Result<sbyte>> SelectBoard(string boardName)
+    public IPlayActionResult Attempt(GameAction playAction) {
+        if (Player == null) {
+            throw new InvalidOperationException($"{nameof(Player)} is null.");
+        }
+        return playAction.GetPlayerAction(Player).Attempt(Value);
+    }
+
+    public OneOf<NotFound, BoardIsDone, Result<BoardView>> SelectBoard(string boardName)
         => ModelToCommandNameUtility.GetBoardIndexByName(boardName, Value.Boards.Count).Match(
             notFound => new NotFound(),
             indexResult => Value.Boards[indexResult.Value].IsDone
-                ? OneOf<NotFound, BoardIsDone, Result<sbyte>>.FromT1(new BoardIsDone())
-                : new Result<sbyte>(indexResult.Value)
+                ? OneOf<NotFound, BoardIsDone, Result<BoardView>>.FromT1(new BoardIsDone())
+                : new Result<BoardView>(GetBoardViewByIndex(indexResult.Value))
         );
     #endregion
 
@@ -119,6 +131,11 @@ public record GameView
             )
         );
 
+    public string GetSpaceName(sbyte boardIndex, sbyte col, sbyte row) {
+        var board = GetBoardViewByIndex(boardIndex);
+        return GetSpaceName(board, col, row);
+    }
+
     public string GetSpaceName(string boardName, sbyte col, sbyte row) {
         var board = GetBoardViewByName(boardName);
         return GetSpaceName(board, col, row);
@@ -162,3 +179,5 @@ public record GameView
 
     #endregion
 }
+
+public struct BoardIsDone;
