@@ -31,7 +31,15 @@ internal static class Options {
     };
 
 	public static Option<string[]> AI1PlayersOption = new("-ai1", "-1") {
-        Description = "Difficulty 1 AI player mark characters.  Provide them space-separated like with players.",
+        Description = "Difficulty 1 'Randy' (random) AI player mark characters.  Provide them space-separated like with players.",
+        DefaultValueFactory = (result) => [],
+        CustomParser = ParsePlayerMarkArray,
+        Recursive = true,
+        AllowMultipleArgumentsPerToken = true
+    };
+
+    public static Option<string[]> AI2PlayersOption = new("-ai2", "-2") {
+        Description = "Difficulty 2 'Winner' AI (created by llm, weak) player mark characters.  Provide them space-separated like with players.",
         DefaultValueFactory = (result) => [],
         CustomParser = ParsePlayerMarkArray,
         Recursive = true,

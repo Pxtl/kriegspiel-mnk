@@ -29,7 +29,8 @@ public class Program {
             Options = { //these are recursive options that will be inherited by subcommands.
                 Options.StateFileOption,
                 Options.JoinAsPlayerOption,
-                Options.AI1PlayersOption
+                Options.AI1PlayersOption,
+                Options.AI2PlayersOption
             }, // rootCommand has no Action.  This makes all child commands required.  Be nice if that was documented somewhere.
             Subcommands = {
                 gameCommand,
@@ -147,7 +148,9 @@ public class Program {
         StateFilePath = parseResult.GetValue(Options.StateFileOption);
         JoinAsPlayer = parseResult.GetValue(Options.JoinAsPlayerOption);
         var ai1Players = parseResult.GetValue(Options.AI1PlayersOption) ?? [];
+        var ai2Players = parseResult.GetValue(Options.AI2PlayersOption) ?? [];
         AIPlayers.AddRange(ai1Players.Select(a => new KeyValuePair<Player, IPlayerAI>(new Player(a), new RandomAI())));
+        AIPlayers.AddRange(ai2Players.Select(a => new KeyValuePair<Player, IPlayerAI>(new Player(a), new WinnerAI())));
     }
 
     private class CommandHandler(Func<ParseResult, int> action) : SynchronousCommandLineAction {
