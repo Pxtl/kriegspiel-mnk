@@ -97,4 +97,21 @@ public class PlayerAITests {
         }
         scoreSum.Highest.Players.Single().Should().Be(winnerAIPlayerX);
     }
+
+    [Fact]
+    public void AIGameRunner_SynchroWeinersmith_WinnerAIvsRandom() {
+        // WinnerAI vs RandomAI should show WinnerAI winning more often
+        int iterations = 10;
+
+        var playerAIs = new OrderedDictionary<Player, IPlayerAI> {
+            [new Player("X")] = new WinnerAI(),
+            [new Player("O")] = new RandomAI()
+        };
+        var winnerAIPlayerX = playerAIs.Keys.First();
+        var scoreSum = ScoreCard.Empty;
+        for (int i = 0; i < iterations; i++) {
+            scoreSum += AIGameRunner.RunAIGame(GameTemplates.SynchroWeinersmith, playerAIs);
+        }
+        scoreSum.Highest.Players.Single().Should().Be(winnerAIPlayerX);
+    }
 }
