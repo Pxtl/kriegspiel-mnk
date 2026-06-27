@@ -7,66 +7,91 @@ namespace KriegspielTicTacToe.Model.PlayerAIs;
 public class WinnerAI : IPlayerAI {
     public string Description => "Winner, Difficulty 3";
 
-    /// <summary>
-    /// Attempt a move using smart positions on all boards. Handles 3x3 and larger boards correctly.
-    /// Uses coordinates (col, row) directly instead of space names.
-    /// </summary>
     public void Attempt(GameView gameView, IEnumerable<GameActionFactory> actionFactories)
     {
-        var spaceActions = actionFactories.OfType<GameActionFactoryForSpace>().ToList();
-        var simpleActions = actionFactories.OfType<GameActionFactoryForSimple>().ToList();
+        int boardRC = 0;   // row count (height in rows)
+        int boardCC = 0;   // col count (width in cols)
 
-        // First: try smart coordinate-based positions on 3x3 boards only
         foreach (var board in gameView.Boards)
         {
-            if (board.ColumnCount != 3 || board.RowCount != 3) continue;
-
-            // Smart position priority using explicit coordinates:
-            // (col, row) are zero-based integers for a 3x3 board
-            var smartPositions = new[] { 
-                ((sbyte)1, (sbyte)1),   // center - highest priority
-                ((sbyte)0, (sbyte)0),   // bottom-left corner
-                ((sbyte)2, (sbyte)0),   // top-right corner  
-                ((sbyte)0, (sbyte)2),   // top-left corner
-                ((sbyte)2, (sbyte)2),   // bottom-right corner
-            };
-
-            foreach (var pos in smartPositions)
+            if (board.ColumnCount != 0)
             {
-                if (spaceActions.Count > 0)
-                {
-                    var result = gameView.Attempt(spaceActions[0].Create(board.BoardIndex, pos.Item1, pos.Item2));
-                    if (result.IsTurnDone) {
-                        return;
-                    }
-                }
+                boardRC = board.RowCount;
+                boardCC = board.ColumnCount;
+                break;
+            }
+        }
+        
+        // If no valid board, skip to simple action fallback
+        if (boardRC == 0) goto fallbackSimpleAction;
+
+        // Calculate center using floor division for any board size
+        int centerColInt = ((int)Math.Floor((double)(boardCC - 1) / 2.0));
+        int centerRowInt = ((int)Math.Floor((double)(boardRC - 1) / 2.0));
+
+        bool onBoard(int c, int r) => 
+            (r >= 0 && r < boardRC && c >= 0 && c < boardCC);
+
+        var spaceActions = actionFactories.OfType<GameActionFactoryForSpace>().ToList();
+        
+        if (spaceActions.Count == 0) goto fallbackSimpleAction;
+
+        // Vertical: scan up/down from center
+        for (int d = -3; d <= 3; d++)
+        {
+            int targetRow = centerRowInt + d;
+            if (onBoard(centerColInt, targetRow))
+                gameView.Attempt(spaceActions[0].Create(0, (sbyte)(centerColInt), (sbyte)targetRow));
+                break;
+        }
+
+        // Horizontal: scan left/right from center  
+        for (int d = -3; d <= 3; d++)
+        {
+            int targetCol = centerColInt + d;
+            if (onBoard(targetCol, centerRowInt))
+                gameView.Attempt(spaceActions[0].Create(0, (sbyte)targetCol, (sbyte)(centerRowInt)));
+                break;
+        }
+
+        // Diagonal: up-right through center  
+        for (int d = -3; d <= 3; d++)
+        {
+            int diagCol = centerColInt + d;
+            int diagRow = centerRowInt + d;
+            if (onBoard(diagCol, diagRow))
+                gameView.Attempt(spaceActions[0].Create(0, (sbyte)diagCol, (sbyte)diagRow));
+                break;
+        }
+
+        // Diagonal: up-left through center  
+        for (int d = -3; d <= 3; d++)
+        {
+            int diagCol2 = centerColInt + d;
+            int diagRow2 = centerRowInt - d;
+            if (onBoard(diagCol2, diagRow2))
+            {
+                gameView.Attempt(spaceActions[0].Create(0, (sbyte)diagCol2, (sbyte)diagRow2));
+                break;
             }
         }
 
-        // Second: for larger boards or when no space moves were available, try SpaceNames fallback
+        // Center itself  
+        gameView.Attempt(spaceActions[0].Create(0, (sbyte)(centerColInt), (sbyte)(centerRowInt)));
+
+    fallbackSimpleAction:
+        // SpaceNames fallback when calculated positions fail
         foreach (var spaceName in gameView.SpaceNames)
         {
-            if (gameView.TryGetCoordinatesFromSpaceName(spaceName, out sbyte boardIndex, out var col, out var row))
+            try 
             {
-                // Only try space actions on boards where they're available.
-                if (spaceActions.Count > 0)
-                {
-                    var result = gameView.Attempt(spaceActions[0].Create(boardIndex, col, row));
-                    if (result.IsTurnDone) {
-                        return;
-                    }
-                }
+                if (gameView.TryGetCoordinatesFromSpaceName(spaceName, out sbyte biBox, out sbyte colBox2, out sbyte rowBox)) break;
             }
+            catch { continue; }  
         }
 
-        // Space actions not available for this game, fallback to simple actions.
-        if (simpleActions.Count > 0)
-        {
-            var simple = simpleActions[simpleActions.Count - 1];
-            var result = gameView.Attempt(simple.Create());
-            if (result.IsTurnDone) {
-                return;
-            }
-        }
+        // Final fallback: simple action  
+        var factory = actionFactories.OfType<GameActionFactoryForSimple>().FirstOrDefault();
+        if (factory != null) gameView.Attempt(factory.Create());
     }
 }
