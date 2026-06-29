@@ -1,6 +1,6 @@
-# kriegspiel-tictactoe
+# kriegspiel-mnk
 
-A command-line implementation of kriegspiel and synchronous [m,n,k
+A command-line implementation of kriegspiel and/or synchronous [m,n,k
 games](https://en.wikipedia.org/wiki/M,n,k-game) such as Zach Weinersmith's
 proposed game 'Kriegspiel Tic Tac Toe'.
 
@@ -31,7 +31,7 @@ but possibly dotnet runtime 10 will be sufficient.
 to run it in basic gameplay from source (Weinersmith's Kriegspiel Tic-Tac-Toe, hotseat
 mode).
 
-> `dotnet run --project ./kriegspiel-tictactoe/src/KriegspielTicTacToe -- game kriegspiel-tictactoe`
+> `dotnet run --project ./kriegspiel-mnk/src/KriegspielMNK -- game kriegspiel-mnk`
 
 ```
 Description:
@@ -48,13 +48,13 @@ Options:
   -j, --join <join>        Join as given player char mark. Must match a mark in players list. Hotseat mode if not provided.
 
 Commands:
-  kriegspiel-tictactoe  Zach Weinersmith's Kriegspiel Tic-Tac-Toe.
+  kriegspiel-mnk  Zach Weinersmith's Kriegspiel Tic-Tac-Toe.
   tictactoe             Basic simple tic-tac-toe.
 ```
 
 to see the other commands to launch the game for play, run
 
-> `dotnet run --project ./kriegspiel-tictactoe/src/KriegspielTicTacToe -- -?`
+> `dotnet run --project ./kriegspiel-mnk/src/KriegspielMNK -- -?`
 
 Command `game` is for predefined gametypes, `custom` for custom game, and `load`
 to load a previous game.  Each command can be called with a `-?` parameter to
@@ -67,7 +67,7 @@ directly.
 So, to start a simple 3-player hotseat game between Alice, Bob, and Carol on a
 4x4 screen, the command would be
 
-> `KriegspielTicTacToe custom -p A B C --boards 1 --size 4 --kriegspiel`
+> `kriegspiel-mnk custom -p A B C --boards 1 --size 4 --kriegspiel`
 
 Conversely, to start a multiplayer game with the default rules (2 players X and
 O on a 3x3 board) on a fileshare named `\\kosmos\storage` with random

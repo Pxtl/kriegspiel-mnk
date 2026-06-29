@@ -13,16 +13,16 @@ have taken their turn.
 
 ```bash
 # Using the synchronous flag
-KriegspielTicTacToe custom --synchronous -p X O --kriegspiel
+kriegspiel-mnk custom --synchronous -p X O --kriegspiel
 
 # Or using shorthand
-KriegspielTicTacToe custom -y -p X O -k
+kriegspiel-mnk custom -y -p X O -k
 ```
 
 ### Starting an Asynchronous (Default) Game
 
 ```bash
-KriegspielTicTacToe custom -p X O -k
+kriegspiel-mnk custom -p X O -k
 ```
 
 ## Behavior
