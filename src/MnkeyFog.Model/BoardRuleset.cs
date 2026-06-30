@@ -13,6 +13,14 @@ public record BoardRuleset {
 	public virtual ScoreCard Score(Board board)
 	=> ScoreCard.Empty;
 
+	/// <summary>
+    /// When constructing a BoardView, does the player know the true score or
+    /// only their personal score?  Use this to control that.  If players need
+    /// the true score, redirect to Score(board).
+    /// </summary>
+    public virtual ScoreCard Score(Board board, Player? player)
+	=> Score(board);
+
 	public override string ToString()
 	=> "empty rules (scoring is impossible)";
 };

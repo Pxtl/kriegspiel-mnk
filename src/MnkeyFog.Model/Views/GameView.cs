@@ -13,6 +13,7 @@ public record GameView
     #region Constructors
     public GameView(GameState gameState, Player? player)
     : base(player) {
+        GameTemplate = gameState.GameTemplate;
         GameStateServer = gameState;
         IsGameOver = gameState.IsGameOver;
         AvailableActions = (Player == null)
@@ -25,12 +26,15 @@ public record GameView
         }
         Boards = boardViewsArray;
         CanTakeTurn = gameState.PlayManager.CanTakeTurn(Player);
+        AllPlayers = gameState.PlayManager.Players;
     }
     #endregion
 
     #region Data Members
+    public IGameTemplate GameTemplate { get; init; }
     public IGameStateServer GameStateServer { get; init; }
     public IReadOnlyList<BoardView> Boards { get; init; }
+    public IReadOnlyList<Player> AllPlayers { get; init; }
     #endregion
 
     #region Copied Calculated Members
@@ -99,6 +103,14 @@ public record GameView
         );
         return GetBoardViewByIndex(boardIndex);
     }
+    #endregion
+
+    #region Scores
+    
+    [JsonIgnore()]
+    public ScoreCard ScoreCard
+    => AllPlayers.BlankPlayersScoreCard()  //make sure all active players are in the scorecard even those with 0.
+        + Boards.Select(b => b.ScoreCard).SumScoreCards();
     #endregion
 
     #region space names
